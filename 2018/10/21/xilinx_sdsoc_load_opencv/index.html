@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.4.2" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.4.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.4.2" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.4.2',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="Xilinx SDSoc 加载opencv库需要下载两个文件 xfopencv 和 Revision Platform， Revision Platform需要和具体的开发板型号对应，我用的是zcu102开发板。 1.xfopencv :  github地址 https://github.com/Xilinx/xfopencv2.revision platform :  https://www.x">
+<meta name="keywords" content="xilinx">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Xilinx SDSoc 加载opencv库">
+<meta property="og:url" content="http://yoursite.com/2018/10/21/xilinx_sdsoc_load_opencv/index.html">
+<meta property="og:site_name" content="小瓜子&#39;s blog">
+<meta property="og:description" content="Xilinx SDSoc 加载opencv库需要下载两个文件 xfopencv 和 Revision Platform， Revision Platform需要和具体的开发板型号对应，我用的是zcu102开发板。 1.xfopencv :  github地址 https://github.com/Xilinx/xfopencv2.revision platform :  https://www.x">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://yoursite.com/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_01_20181021.png">
+<meta property="og:image" content="http://yoursite.com/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_02_20181021.png">
+<meta property="og:image" content="http://yoursite.com/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_03_20181021.png">
+<meta property="og:image" content="http://yoursite.com/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_04_20181021.png">
+<meta property="og:image" content="http://yoursite.com/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_05_20181021.png">
+<meta property="og:image" content="http://yoursite.com/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_06_20181021.png">
+<meta property="og:image" content="http://yoursite.com/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_07_20181021.png">
+<meta property="og:image" content="http://yoursite.com/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_08_20181021.png">
+<meta property="og:image" content="http://yoursite.com/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_09_20181021.png">
+<meta property="og:updated_time" content="2019-08-07T04:04:12.016Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Xilinx SDSoc 加载opencv库">
+<meta name="twitter:description" content="Xilinx SDSoc 加载opencv库需要下载两个文件 xfopencv 和 Revision Platform， Revision Platform需要和具体的开发板型号对应，我用的是zcu102开发板。 1.xfopencv :  github地址 https://github.com/Xilinx/xfopencv2.revision platform :  https://www.x">
+<meta name="twitter:image" content="http://yoursite.com/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_01_20181021.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/10/21/xilinx_sdsoc_load_opencv/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Xilinx SDSoc 加载opencv库 | 小瓜子's blog</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小瓜子's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />Home</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />Categories</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />Archives</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/21/xilinx_sdsoc_load_opencv/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="小瓜子">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/500px-linux-header-picture.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小瓜子's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Xilinx SDSoc 加载opencv库
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2018-10-21 00:00:00" itemprop="dateCreated datePublished" datetime="2018-10-21T00:00:00+08:00">2018-10-21</time>
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/embeded/" itemprop="url" rel="index"><span itemprop="name">embeded</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Xilinx SDSoc 加载opencv库需要下载两个文件 xfopencv 和 Revision Platform， Revision Platform需要和具体的开发板型号对应，我用的是zcu102开发板。</p>
+<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line"><span class="number">1.</span><span class="string">xfopencv :</span>  github地址 <span class="string">https:</span><span class="comment">//github.com/Xilinx/xfopencv</span></span><br><span class="line"></span><br><span class="line"><span class="number">2.</span>revision <span class="string">platform :</span>  <span class="string">https:</span><span class="comment">//www.xilinx.com/member/forms/download/design-license-xef.html?akdm=1&amp;filename=zcu102-rv-ss-2017-4.zip</span></span><br></pre></td></tr></table></figure>
+<p>A. xfopencv下载好了以后放在 ~/.Xilinx/SDx/2017.4 目录(2017.4请修改为你的实际版本号)</p>
+<p>B. Revision Platform下载后解压到/opt目录</p>
+<a id="more"></a>
+<p><img src="/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_01_20181021.png" style="margin:0px"></p>
+<p><img src="/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_02_20181021.png" style="margin:0px"></p>
+<p>启动SDx 按照<a href="https://www.sakuragl.com/2018/10/21/xilinx_zcu102_helloworld/" target="_blank" rel="noopener">上一篇文章</a>里面的步骤创建一个项目zcu102client，选中创建的项目，鼠标点击菜单栏的Xilinx 选中SDx Liraries</p>
+<p><img src="/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_03_20181021.png" style="margin:0px"></p>
+<p>展开Xilinx xfopencv Library , 双击然后选择下面的Add to Project 会让你选择添加到哪个Project，点击ok完成添加。<br><img src="/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_04_20181021.png" style="margin:0px"></p>
+<p>添加完成后在选中创建的项目，点击Properties，可以看到Libraries下面多出来的就是上一步中SDx IDE自动为我们添加的opencv库。<br><img src="/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_05_20181021.png" style="margin:0px"></p>
+<p>这里可以把你用不到的库都删除掉，比如我就只用到了opencv_core opencv_videoio opencv_imgcodecs<br><img src="/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_06_20181021.png" style="margin:0px"></p>
+<p>最后还需要设置一个变量SYSROOT，设置为Revision Platform解压后的路径下的sw/sysroot (需要勾选show system variables才可以看到这个变量)， 如下图:<br><img src="/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_07_20181021.png" style="margin:0px"></p>
+<p><img src="/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_08_20181021.png" style="margin:0px"></p>
+<p>修改完成后点击菜单栏的build就可以编译代码了。</p>
+<p><strong>下面总结一下build过程中遇到的几个问题，希望能给大家一个参考:</strong></p>
+<p>/opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/../lib/gcc/aarch64-linux-gnu/6.2.1/../../../../aarch64-linux-gnu/bin/ld: cannot find crt1.o<br>/opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/../lib/gcc/aarch64-linux-gnu/6.2.1/../../../../aarch64-linux-gnu/bin/ld: cannot find crti.o<br>/opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/../lib/gcc/aarch64-linux-gnu/6.2.1/../../../../aarch64-linux-gnu/bin/ld: cannot find crtn.o: No such file or directory<br>collect2: error: ld returned 1 exit status</p>
+<p><strong>分析：关注到这里报错的ld程序所在的bin路径，进入同级目录的lib目录,发现确实没有该文件，通过find /opt/zcu102_rv_ss/ -name “crt1.o” 又发现有这个文件存在，所以我们建立一个软连接即可:</strong><br><figure class="highlight crystal"><table><tr><td class="code"><pre><span class="line">cd /opt/Xilinx/SDK/<span class="number">2017.4</span>/gnu/aarch64/lin/aarch64-linux/bin/../<span class="class"><span class="keyword">lib</span>/<span class="title">gcc</span>/<span class="title">aarch64</span>-<span class="title">linux</span>-<span class="title">gnu</span>/6.2.1/../../../../<span class="title">aarch64</span>-<span class="title">linux</span>-<span class="title">gnu</span>/<span class="title">bin</span></span></span><br><span class="line"></span><br><span class="line">cd ../<span class="class"><span class="keyword">lib</span></span></span><br><span class="line"></span><br><span class="line">sudo ln -s /opt/zcu102_rv_ss/sw/sysroot/usr/<span class="class"><span class="keyword">lib</span>/<span class="title">crt1</span>.<span class="title">o</span> ./<span class="title">crt1</span>.<span class="title">o</span></span></span><br><span class="line">sudo ln -s /opt/zcu102_rv_ss/sw/sysroot/usr/<span class="class"><span class="keyword">lib</span>/<span class="title">crti</span>.<span class="title">o</span> ./<span class="title">crti</span>.<span class="title">o</span></span></span><br><span class="line">sudo ln -s /opt/zcu102_rv_ss/sw/sysroot/usr/<span class="class"><span class="keyword">lib</span>/<span class="title">crtn</span>.<span class="title">o</span> ./<span class="title">crtn</span>.<span class="title">o</span></span></span><br></pre></td></tr></table></figure></p>
+<p>/opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/../lib/gcc/aarch64-linux-gnu/6.2.1/../../../../aarch64-linux-gnu/bin/ld: cannot find /lib/libpthread.so.0<br>/opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/../lib/gcc/aarch64-linux-gnu/6.2.1/../../../../aarch64-linux-gnu/bin/ld: cannot find /usr/lib/libpthread_nonshared.a<br>collect2: error: ld returned 1 exit status</p>
+<p><strong>分析：这个错误和上一个不同的是错误信息里面点名道姓的指定了绝对路径下文件找不到，但是用find命令查找的时候发现/opt/zcu102_rv_ss/sw/sysroot下面有/opt/zcu102_rv_ss/sw/sysroot/usr/lib/libpthread.so这个文件，由于xilinx SDx 都是调用静态链接库？动态链接库一般会指向静态链接库，所以用vim打开：</strong><br><figure class="highlight crystal"><table><tr><td class="code"><pre><span class="line">sudo vim /opt/zcu102_rv_ss/sw/sysroot/usr/<span class="class"><span class="keyword">lib</span>/<span class="title">libpthread</span>.<span class="title">so</span></span></span><br></pre></td></tr></table></figure></p>
+<figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* GNU ld script</span></span><br><span class="line"><span class="comment">   Use the shared library, but some functions are only in</span></span><br><span class="line"><span class="comment">   the static library, so try that secondarily.  */</span></span><br><span class="line"><span class="function"><span class="title">OUTPUT_FORMAT</span><span class="params">(elf64-littleaarch64)</span></span></span><br><span class="line">GROUP ( /lib/libpthread<span class="selector-class">.so</span>.<span class="number">0</span> /usr/lib/libpthread_nonshared<span class="selector-class">.a</span> )</span><br><span class="line"></span><br><span class="line">这里就看出了端倪，果然是被指定了绝对路径，把绝对路径去掉，像这样：</span><br><span class="line">GROUP ( libpthread<span class="selector-class">.so</span>.<span class="number">0</span> libpthread_nonshared<span class="selector-class">.a</span> )</span><br></pre></td></tr></table></figure>
+<p>/opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/../lib/gcc/aarch64-linux-gnu/6.2.1/../../../../aarch64-linux-gnu/bin/ld: cannot find libpthread.so.0<br>collect2: error: ld returned 1 exit status</p>
+<p><strong>分析：还记得crt1.o  crti.o  crtn.o 吗， 完全一样的错误信息，我这里为了防止类似的错误继续发生，而且可以看到</strong></p>
+<p>/opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/../lib/gcc/aarch64-linux-gnu/6.2.1/../../../../aarch64-linux-gnu/lib    本身是一个空目录，所以索性直接做了两个目录的软连接:<br><figure class="highlight crystal"><table><tr><td class="code"><pre><span class="line">cd /opt/Xilinx/SDK/<span class="number">2017.4</span>/gnu/aarch64/lin/aarch64-linux/bin/../<span class="class"><span class="keyword">lib</span>/<span class="title">gcc</span>/<span class="title">aarch64</span>-<span class="title">linux</span>-<span class="title">gnu</span>/6.2.1/../../../../<span class="title">aarch64</span>-<span class="title">linux</span>-<span class="title">gnu</span>/<span class="title">bin</span></span></span><br><span class="line"></span><br><span class="line">cd ../<span class="class"><span class="keyword">lib</span></span></span><br><span class="line"></span><br><span class="line">sudo ln -sf /opt/zcu102_rv_ss/sw/sysroot/<span class="class"><span class="keyword">lib</span>/ .</span></span><br><span class="line">sudo ln -sf /opt/zcu102_rv_ss/sw/sysroot/usr/ .</span><br></pre></td></tr></table></figure></p>
+<p>/opt/zcu102_rv_ss/sw/sysroot/usr/include/opencv2/core/cvdef.h  error: unknown type name ‘float32x2_t’<br>/opt/zcu102_rv_ss/sw/sysroot/usr/include/opencv2/core/cvdef.h  error: unknown type name ‘uint32_t’<br>……. (略过一大堆类似的未知类型)</p>
+<p><strong>分析：打开报错的头文件/opt/zcu102_rv_ss/sw/sysroot/usr/include/opencv2/core/cvdef.h 发现未知的类型是条件定义在一个CV_NEON宏下面的，也就是说CV_NEON = 1的时候就会报错，所以我把CV_NEON宏全部定义为了0</strong></p>
+<p><img src="/images/xilinx_sdsoc_load_opencv/xilinx_sdsoc_load_opencv_09_20181021.png" style="margin:0px"></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/xilinx/" rel="tag"># xilinx</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/10/16/compile_arm_helloworld/" rel="next" title="编译出arm Android环境下的C++可执行文件">
+                <i class="fa fa-chevron-left"></i> 编译出arm Android环境下的C++可执行文件
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/10/21/xilinx_zcu102_helloworld/" rel="prev" title="使用Xilinx SDSoc在Xilinx zcu102开发板上编程HelloWorld">
+                使用Xilinx SDSoc在Xilinx zcu102开发板上编程HelloWorld <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/500px-linux-header-picture.png"
+                alt="小瓜子" />
+            
+              <p class="site-author-name" itemprop="name">小瓜子</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">26</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">9</span>
+                    <span class="site-state-item-name">categories</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">小瓜子</span>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.4.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.2"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

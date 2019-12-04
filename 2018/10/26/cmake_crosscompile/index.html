@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.4.2" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.4.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.4.2" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.4.2',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="之前编译代码都是纯手写makefile脚本 , 和手写makefile相比cmake语法简单易懂容易编写。遇到cmake之后我就再也没有手写makefile了, 都是直接写CMakeLists.txt然后自动生成makefile。 cmake生成交叉编译的makefile，可以有两种方式： 手写CMakeLists.txt通过手写交叉编译CMakeLists.txt然后生成交叉编译makefile">
+<meta name="keywords" content="cmake">
+<meta property="og:type" content="article">
+<meta property="og:title" content="cmake 交叉编译">
+<meta property="og:url" content="http://yoursite.com/2018/10/26/cmake_crosscompile/index.html">
+<meta property="og:site_name" content="小瓜子&#39;s blog">
+<meta property="og:description" content="之前编译代码都是纯手写makefile脚本 , 和手写makefile相比cmake语法简单易懂容易编写。遇到cmake之后我就再也没有手写makefile了, 都是直接写CMakeLists.txt然后自动生成makefile。 cmake生成交叉编译的makefile，可以有两种方式： 手写CMakeLists.txt通过手写交叉编译CMakeLists.txt然后生成交叉编译makefile">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://yoursite.com/images/cmake_crosscompile/cmake_crosscompile_01_20181026.png">
+<meta property="og:image" content="http://yoursite.com/images/cmake_crosscompile/cmake_crosscompile_02_20181026.png">
+<meta property="og:image" content="http://yoursite.com/images/cmake_crosscompile/cmake_crosscompile_03_20181026.png">
+<meta property="og:image" content="http://yoursite.com/images/cmake_crosscompile/cmake_crosscompile_04_20181026.png">
+<meta property="og:image" content="http://yoursite.com/images/cmake_crosscompile/cmake_crosscompile_05_20181026.png">
+<meta property="og:image" content="http://yoursite.com/images/cmake_crosscompile/cmake_crosscompile_06_20181026.png">
+<meta property="og:image" content="http://yoursite.com/images/cmake_crosscompile/cmake_crosscompile_07_20181026.png">
+<meta property="og:updated_time" content="2019-02-13T08:40:36.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="cmake 交叉编译">
+<meta name="twitter:description" content="之前编译代码都是纯手写makefile脚本 , 和手写makefile相比cmake语法简单易懂容易编写。遇到cmake之后我就再也没有手写makefile了, 都是直接写CMakeLists.txt然后自动生成makefile。 cmake生成交叉编译的makefile，可以有两种方式： 手写CMakeLists.txt通过手写交叉编译CMakeLists.txt然后生成交叉编译makefile">
+<meta name="twitter:image" content="http://yoursite.com/images/cmake_crosscompile/cmake_crosscompile_01_20181026.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/10/26/cmake_crosscompile/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>cmake 交叉编译 | 小瓜子's blog</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小瓜子's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />Home</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />Categories</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />Archives</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/26/cmake_crosscompile/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="小瓜子">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/500px-linux-header-picture.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小瓜子's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">cmake 交叉编译
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2018-10-26 00:00:00" itemprop="dateCreated datePublished" datetime="2018-10-26T00:00:00+08:00">2018-10-26</time>
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/embeded/" itemprop="url" rel="index"><span itemprop="name">embeded</span></a></span>
+
+                
+                
+                  , 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>之前编译代码都是纯手写makefile脚本 , 和手写makefile相比cmake语法简单易懂容易编写。遇到cmake之后我就再也没有手写makefile了, 都是直接写CMakeLists.txt然后自动生成makefile。 cmake生成交叉编译的makefile，可以有两种方式：</p>
+<h3 id="手写CMakeLists-txt"><a href="#手写CMakeLists-txt" class="headerlink" title="手写CMakeLists.txt"></a><strong>手写CMakeLists.txt</strong></h3><p>通过手写交叉编译CMakeLists.txt然后生成交叉编译makefile。以最简单的helloworld为例:</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// main.cpp</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"Hello, World!"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line">#对应的标准 CMakeLists.txt</span><br><span class="line"><span class="function"><span class="title">cmake_minimum_required</span><span class="params">(VERSION <span class="number">3.10</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">project</span><span class="params">(helloworld)</span></span></span><br><span class="line"><span class="function"><span class="title">set</span><span class="params">(CMAKE_CXX_STANDARD <span class="number">11</span>)</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">add_executable</span><span class="params">(helloworld main.cpp)</span></span></span><br></pre></td></tr></table></figure>
+<p>现在改写为适用于xilinx zcu102开发板的CMakeLists.txt<br><figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="title">cmake_minimum_required</span><span class="params">(VERSION <span class="number">3.10</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">project</span><span class="params">(helloworld)</span></span></span><br><span class="line"><span class="function"><span class="title">set</span><span class="params">(CMAKE_CXX_STANDARD <span class="number">11</span>)</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">add_executable</span><span class="params">(helloworld main.cpp)</span></span></span><br><span class="line"></span><br><span class="line">#添加以下语句</span><br><span class="line"><span class="function"><span class="title">SET</span><span class="params">(CMAKE_SYSTEM_NAME Linux)</span></span></span><br><span class="line"><span class="function"><span class="title">SET</span><span class="params">(CMAKE_FIND_ROOT_PATH <span class="string">"/data/Xilinx/zcu102_rv_ss/sw/sysroot"</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">SET</span><span class="params">(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)</span></span></span><br><span class="line"><span class="function"><span class="title">SET</span><span class="params">(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)</span></span></span><br><span class="line"><span class="function"><span class="title">SET</span><span class="params">(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)</span></span></span><br><span class="line"><span class="function"><span class="title">SET</span><span class="params">(CMAKE_C_COMPILER <span class="string">"/data/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/aarch64-linux-gnu-gcc"</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">SET</span><span class="params">(CMAKE_CXX_COMPILER <span class="string">"/data/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/aarch64-linux-gnu-g++"</span>)</span></span></span><br></pre></td></tr></table></figure></p>
+<p>我只添加了后面的7行内容，下面分别讲解每一行的具体含义:</p>
+<ul>
+<li><p>SET(CMAKE_SYSTEM_NAME Linux)<br>告诉cmake编译的时候目标平台target是什么 , 默认的时候cmake会以本机平台类型为目标平台</p>
+</li>
+<li><p>SET(CMAKE_FIND_ROOT_PATH “/data/Xilinx/zcu102_rv_ss/sw/sysroot”)<br>告诉CMake在编译的时候查找所需文件(头文件, 库文件, 编译用到的程序)的根目录在哪里</p>
+</li>
+<li><p>SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)<br>SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)<br>SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)<br>查找编译用到的程序时 , 绝对不去上面指定的根目录查找 (那就会在本机查找);<br>查找编译过程用到的库文件时 , 只去上面指定的根目录查找;<br>查找编译过程用到的头文件时 , 只去上面指定的根目录查找;</p>
+</li>
+<li><p>SET(CMAKE_C_COMPILER “/data/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/aarch64-linux-gnu-gcc”)<br>SET(CMAKE_CXX_COMPILER “/data/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/aarch64-linux-gnu-g++”)<br>分别指定交叉编译的C和C++编译器</p>
+</li>
+</ul>
+<p>下面执行命令开始编译:<br><img src="/images/cmake_crosscompile/cmake_crosscompile_01_20181026.png" style="margin:0px"></p>
+<p><img src="/images/cmake_crosscompile/cmake_crosscompile_02_20181026.png" style="margin:0px"></p>
+<p>编译成功后 , 用file命令可以看到编译出来的helloworld是ARM aarch64架构的。</p>
+<h3 id="cmake-gui-自动生成"><a href="#cmake-gui-自动生成" class="headerlink" title="cmake-gui 自动生成"></a><strong>cmake-gui 自动生成</strong></h3><p>除了手写CMakeLists.txt, 还可以通过cmake-gui这个图形工具来生成交叉编译的CMakeLists.txt和makefile。</p>
+<p><img src="/images/cmake_crosscompile/cmake_crosscompile_03_20181026.png" style="margin:0px"></p>
+<p>点击configure , 选择如图所示 :<br><img src="/images/cmake_crosscompile/cmake_crosscompile_04_20181026.png" style="margin:0px"></p>
+<p><img src="/images/cmake_crosscompile/cmake_crosscompile_05_20181026.png" style="margin:0px"></p>
+<p>这里的配置就和手写CMakeLists.txt里面的一样<br><img src="/images/cmake_crosscompile/cmake_crosscompile_06_20181026.png" style="margin:0px"></p>
+<p>点击generate自动生成makefile后，进入到相应的目录执行make<br><img src="/images/cmake_crosscompile/cmake_crosscompile_07_20181026.png" style="margin:0px"></p>
+<p>同样地 , 也成功生成了交叉编译的helloworld。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/cmake/" rel="tag"># cmake</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/10/26/kms_active_server/" rel="next" title="kms服务器">
+                <i class="fa fa-chevron-left"></i> kms服务器
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/10/28/ssh_remote_x11/" rel="prev" title="通过ssh X11转发使用远程gui程序">
+                通过ssh X11转发使用远程gui程序 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/500px-linux-header-picture.png"
+                alt="小瓜子" />
+            
+              <p class="site-author-name" itemprop="name">小瓜子</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">26</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">9</span>
+                    <span class="site-state-item-name">categories</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#手写CMakeLists-txt"><span class="nav-text">手写CMakeLists.txt</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cmake-gui-自动生成"><span class="nav-text">cmake-gui 自动生成</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">小瓜子</span>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.4.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.2"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

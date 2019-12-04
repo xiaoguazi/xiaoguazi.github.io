@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.4.2" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.4.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.4.2" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.4.2',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="要想编译出arm环境的C++可执行文件主要就是利用交叉编译器进行编译, 编译过程本身都大同小异。 安装交叉编译器，交叉编译器的安装方法大致有下面几种：&amp;ensp;&amp;ensp;&amp;ensp;&amp;ensp;A. debian/ubuntu 系统可以直接输入命令安装: sudo apt install g++-arm-linux-gnueabihfsudo apt install g++-8-arm-lin">
+<meta name="keywords" content="arm">
+<meta property="og:type" content="article">
+<meta property="og:title" content="编译出arm Android环境下的C++可执行文件">
+<meta property="og:url" content="http://yoursite.com/2018/10/16/compile_arm_helloworld/index.html">
+<meta property="og:site_name" content="小瓜子&#39;s blog">
+<meta property="og:description" content="要想编译出arm环境的C++可执行文件主要就是利用交叉编译器进行编译, 编译过程本身都大同小异。 安装交叉编译器，交叉编译器的安装方法大致有下面几种：&amp;ensp;&amp;ensp;&amp;ensp;&amp;ensp;A. debian/ubuntu 系统可以直接输入命令安装: sudo apt install g++-arm-linux-gnueabihfsudo apt install g++-8-arm-lin">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://yoursite.com/images/compile_arm_helloword/compile_arm_helloword_01_20181016.png">
+<meta property="og:image" content="http://yoursite.com/images/compile_arm_helloword/compile_arm_helloword_02_20181016.png">
+<meta property="og:image" content="http://yoursite.com/images/compile_arm_helloword/compile_arm_helloword_03_20181016.png">
+<meta property="og:image" content="http://yoursite.com/images/compile_arm_helloword/compile_arm_helloword_04_20181016.png">
+<meta property="og:updated_time" content="2019-02-13T08:40:36.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="编译出arm Android环境下的C++可执行文件">
+<meta name="twitter:description" content="要想编译出arm环境的C++可执行文件主要就是利用交叉编译器进行编译, 编译过程本身都大同小异。 安装交叉编译器，交叉编译器的安装方法大致有下面几种：&amp;ensp;&amp;ensp;&amp;ensp;&amp;ensp;A. debian/ubuntu 系统可以直接输入命令安装: sudo apt install g++-arm-linux-gnueabihfsudo apt install g++-8-arm-lin">
+<meta name="twitter:image" content="http://yoursite.com/images/compile_arm_helloword/compile_arm_helloword_01_20181016.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/10/16/compile_arm_helloworld/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>编译出arm Android环境下的C++可执行文件 | 小瓜子's blog</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小瓜子's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />Home</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />Categories</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />Archives</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/16/compile_arm_helloworld/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="小瓜子">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/500px-linux-header-picture.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小瓜子's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">编译出arm Android环境下的C++可执行文件
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2018-10-16 00:00:00" itemprop="dateCreated datePublished" datetime="2018-10-16T00:00:00+08:00">2018-10-16</time>
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/embeded/" itemprop="url" rel="index"><span itemprop="name">embeded</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>要想编译出arm环境的C++可执行文件主要就是利用交叉编译器进行编译, 编译过程本身都大同小异。</p>
+<h4 id="安装交叉编译器，交叉编译器的安装方法大致有下面几种："><a href="#安装交叉编译器，交叉编译器的安装方法大致有下面几种：" class="headerlink" title="安装交叉编译器，交叉编译器的安装方法大致有下面几种："></a>安装交叉编译器，交叉编译器的安装方法大致有下面几种：</h4><p>&ensp;&ensp;&ensp;&ensp;A. debian/ubuntu 系统可以直接输入命令安装:</p>
+<figure class="highlight cmake"><table><tr><td class="code"><pre><span class="line">sudo apt <span class="keyword">install</span> g++-arm-linux-gnueabihf</span><br><span class="line"></span><br><span class="line">sudo apt <span class="keyword">install</span> g++-<span class="number">8</span>-arm-linux-gnueabihf        <span class="comment">#这种方式还可以指定版本</span></span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>&ensp;&ensp;&ensp;&ensp;B.直接下载交叉编译器的二进制文件，arm官网下载地址，这个网站的下载速度比较慢，可以baidu关键字gcc-arm-none-eabi寻找国内的下载地址，下载解压，把解压目录加入PATH环境变量或者把解压出来的文件复制到/usr/bin目录</p>
+<p>&ensp;&ensp;&ensp;&ensp;C.下载Android NDK，NDK里面自带了适用于Android的交叉编译工具链，下载后在prebuilt目录可以找到</p>
+<p>&ensp;&ensp;&ensp;&ensp;D.下载gcc源代码，手动编译安装</p>
+<p>以上几种方法除了手动编译可能会遇到各种依赖问题以外，其余的都比较简单，我这里刚好使用的是ubuntu 18.04的系统，就采用A方法安装的。</p>
+<h4 id="用交叉编译器编译代码，现在写一段很古老的程序，然后用交叉编译器编译："><a href="#用交叉编译器编译代码，现在写一段很古老的程序，然后用交叉编译器编译：" class="headerlink" title="用交叉编译器编译代码，现在写一段很古老的程序，然后用交叉编译器编译："></a>用交叉编译器编译代码，现在写一段很古老的程序，然后用交叉编译器编译：</h4><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">"hello world, from Android C++"</span>  &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>执行命令编译：　　<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">arm-linux-gnueabihf-g++-8  -static  helloworld.cpp     # 一定要加上 -static 静态链接的选项，不然编译出来的a.out执行不了</span><br></pre></td></tr></table></figure></p>
+<p><img src="/images/compile_arm_helloword/compile_arm_helloword_01_20181016.png" style="margin:0px"></p>
+<h4 id="将Android设备连上电脑，然后通过下面的步骤重新挂载system分区为可读写分区"><a href="#将Android设备连上电脑，然后通过下面的步骤重新挂载system分区为可读写分区" class="headerlink" title="将Android设备连上电脑，然后通过下面的步骤重新挂载system分区为可读写分区"></a>将Android设备连上电脑，然后通过下面的步骤重新挂载system分区为可读写分区</h4><figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line">adb root           <span class="comment"># 该命令需要手机已经root</span></span><br><span class="line">adb remount</span><br><span class="line">adb <span class="keyword">shell</span><span class="bash"> <span class="string">"mount -o rw,remount /system"</span>    <span class="comment"># rw 表示挂载为可读写read/write</span></span></span><br></pre></td></tr></table></figure>
+<p>挂载好了以后使用adb shell登录到Android的shell环境，创建一个我们本次测试使用的文件夹”helloworld”<br><img src="/images/compile_arm_helloword/compile_arm_helloword_02_20181016.png" style="margin:0px"></p>
+<p>然后使用adb命令把文件push到Android设备中去:<br><figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line">adb push ./<span class="selector-tag">a</span><span class="selector-class">.out</span> /data/helloworld</span><br></pre></td></tr></table></figure></p>
+<p><img src="/images/compile_arm_helloword/compile_arm_helloword_03_20181016.png" style="margin:0px"></p>
+<h4 id="再次登录Android-shell环境，为a-out文件赋权限-如果已经有了可执行的权限就可以不用再次赋权限了-，然后运行a-out"><a href="#再次登录Android-shell环境，为a-out文件赋权限-如果已经有了可执行的权限就可以不用再次赋权限了-，然后运行a-out" class="headerlink" title="再次登录Android shell环境，为a.out文件赋权限(如果已经有了可执行的权限就可以不用再次赋权限了)，然后运行a.out"></a>再次登录Android shell环境，为a.out文件赋权限(如果已经有了可执行的权限就可以不用再次赋权限了)，然后运行a.out</h4><figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line">adb shell                #登录Android shell环境</span><br><span class="line"></span><br><span class="line">cd /data/helloworld      #进入<span class="selector-tag">a</span>.out所在目录</span><br><span class="line"></span><br><span class="line">chmod <span class="number">777</span> <span class="selector-tag">a</span><span class="selector-class">.out</span>          #赋权限为<span class="number">777</span></span><br><span class="line"></span><br><span class="line">./<span class="selector-tag">a</span><span class="selector-class">.out</span>                  #运行<span class="selector-tag">a</span>.out</span><br></pre></td></tr></table></figure>
+<p><img src="/images/compile_arm_helloword/compile_arm_helloword_04_20181016.png" style="margin:0px"><br>可以看到，最终成功输出了 “hello world, from Android C++”  。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/arm/" rel="tag"># arm</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/10/21/xilinx_sdsoc_load_opencv/" rel="prev" title="Xilinx SDSoc 加载opencv库">
+                Xilinx SDSoc 加载opencv库 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/500px-linux-header-picture.png"
+                alt="小瓜子" />
+            
+              <p class="site-author-name" itemprop="name">小瓜子</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">26</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">9</span>
+                    <span class="site-state-item-name">categories</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#安装交叉编译器，交叉编译器的安装方法大致有下面几种："><span class="nav-text">安装交叉编译器，交叉编译器的安装方法大致有下面几种：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#用交叉编译器编译代码，现在写一段很古老的程序，然后用交叉编译器编译："><span class="nav-text">用交叉编译器编译代码，现在写一段很古老的程序，然后用交叉编译器编译：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#将Android设备连上电脑，然后通过下面的步骤重新挂载system分区为可读写分区"><span class="nav-text">将Android设备连上电脑，然后通过下面的步骤重新挂载system分区为可读写分区</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#再次登录Android-shell环境，为a-out文件赋权限-如果已经有了可执行的权限就可以不用再次赋权限了-，然后运行a-out"><span class="nav-text">再次登录Android shell环境，为a.out文件赋权限(如果已经有了可执行的权限就可以不用再次赋权限了)，然后运行a.out</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">小瓜子</span>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.4.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.2"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title><![CDATA[TP-LINK WAR1200L 路由器设置成无线交换机模式]]></title>
+    <url>%2F2019%2F11%2F09%2Ftplink_wireless_switch_mode%2F</url>
+    <content type="text"><![CDATA[办公室有一个TP-LINK WAR1200L路由器, 测试场景需要把连接到wifi的测试设备和光猫处于同一网段(本质为了和办公pc处于同一网段, 办公pc是通过有线交换机连接到光猫), 网上搜索了下， 看到一个类似的文章, 操作起来比较简单, 只需要三个步骤: 1. 设置路由器LAN口和光猫同一网段这里LAN口的ip地址要设置成和光猫同一网段(我的光猫ip: 192.168.1.1), 需要注意的就是LAN口的ip不能与局域网中其他主机重复. 2.关闭路由器LAN口DHCP服务关闭路由器的DHCP服务器后, 连接到路由器wifi的设备由光猫统一分配ip地址. 3.把路由器上WAN的网线拔掉, 换插到LAN口, 然后重启路由器即可参考文章中说道可以使用LAN口ip地址登录路由器的管理界面(上图中的: 192.168.1.4), 我这里实际情况是连接不上去路由器管理界面, 翻看了TP-LINK WAR1200L管理界面的其他设置, 也没有找到相关的配置项, 猜测可能跟路由器有关. 参考文章: https://www.jianshu.com/p/bd93afa65ef7]]></content>
+      <categories>
+        <category>network</category>
+      </categories>
+      <tags>
+        <tag>tplink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[petalinux离线编译Linux镜像]]></title>
+    <url>%2F2019%2F10%2F31%2Fpetalinux_offline_build_linux_image%2F</url>
+    <content type="text"><![CDATA[petalinux编译linux镜像默认会去 petalinux.xilinx.com下载编译过程中需要的资源包, 如果网络不好或者petalinux所在的那台服务器被限制上网的话, 就编译不了. 但其实xilinx官方提供了离线资源包下载, 只需要预先把集合了所有资源的压缩包下载解压到本地, 通过设置petalinux mirror路径选项就能使用离线资源编译Linux镜像(已测试可行的版本petalinux 2017.4/2018.2/2018.3/2019.1) , 下面以petalinux 2018.2为例实际操作一下. xilinx自带的说明文档sstate_rel_2018.2_READMEBy default petalinux uses sstate-cache and download mirrors from petalinux.xilinx.comThis README is for the users who uses tool completely offline.Setting sstate cache1) Extract the downloaded tar contents of sstate-cache at any location2) run petalinux-config -&gt; Yocto Settings -&gt;Local sstate feeds settings -&gt;local sstate feeds url (press Enter)3) Provide the path of sstate-cache from above Ex: /&lt;path&gt;/aarch64 for ZynqMP projects /&lt;path&gt;/arm for Zynq projects /&lt;path&gt;/mb-full for MB AXI full projects4) Save the configurations to use the sstate-cacheSetting download mirror1) Extract the downloaded tar contents of sstate-cache at any location2) run petalinux-config -&gt; Yocto Settings -&gt; Add pre-mirror url -&gt; (press Enter) Clear default value3) Provide the path of sstate-cache from above file://&lt;path&gt;/downloads for all projects4) Save the configurations to use the download mirrors5) Verify the changes in build/conf/plnxtool.conf6) petalinux-build 上面是官方的使用说明， 只需要按照步骤操作就可以。 a. 下载离线资源包sstate-rel-v2018.2.tar.gz并解压. b. 创建好project后, 运行petalinux-config 我是xilinx zcu104开发板属于ZynqMP系列, 所以选择aarch64 c. 保存好配置后继续下一步petalinux-build即可.]]></content>
+      <categories>
+        <category>embeded</category>
+      </categories>
+      <tags>
+        <tag>xilinx</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[CMakeLists.txt源文件顺序不当导致全局变量不能正确初始化]]></title>
+    <url>%2F2019%2F08%2F07%2Fcmakelists.txt_cause_variable_init_error%2F</url>
+    <content type="text"><![CDATA[我现在一直用cmake来生成Makefile文件, 然后才是编译代码, 有一个project一直都是能够正常编译并且运行结果也正确的, 前两天我小改动了下代码发现运行的结果不正常了, 主要体现在一个全局变量没能初始化, 下面简要分析一下原因。 project 文件组织结构是这样的.├── CMakeLists.txt├── global.cpp├── global.h├── main.cpp├── socket.cpp└── socket.h0 directories, 6 files global.cpp 文件里面定义了一个socket类的全局对象g_socket, main函数使用这个全局对象g_socket的时候发现并未能按照预期初始化g_socket的构造函数, 进而程序崩溃了.那是为什么会没能初始化g_socket呢, 我们先看看CMakeLists.txt的内容:cmake_minimum_required(VERSION 3.12)set(src global.cpp main.cpp socket.cpp)add_executable(for-test main.cpp) 很简单的CMakeLists.txt, 细心一点你会发现问题出在这个src变量对应的源代码文件顺序上, gloabal.cpp文件在socket.cpp文件之前, 所以定义全局对象g_socket的时候因为找不到g_socket的构造函数的符号连接, 进而采用默认的构造函数. 这个问题只需要把socket.cpp的位置换到最前面去就可以解决.]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>cmake</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[自动挂载加密文件]]></title>
+    <url>%2F2019%2F03%2F05%2Fencrypt_virtual_disk_shell_script%2F</url>
+    <content type="text"><![CDATA[之前说到使用cryptsetup加密虚拟磁盘文件， 加密完成后想要打开加密文件每次都要输入那么多条命令很麻烦，想到能不能写一个shell脚本来简化使用过程，于是这个脚本就这样来的. 挂载mount_encrypted_virtual_disk.sh脚本的作用是挂载已经加密好的虚拟磁盘文件(encrypted.vol)到指定目录#!/bin/bashif [ `id -u` -ne 0 ];then echo "non-root user" exitfiif [ -z $1 -o -z $2 ];then program=`basename $0` echo -e "$program\tfilename\tmount_dir" exitfifilename=$1mount_dir=$2mapper_dir=/dev/mappermounted_success_flag="$mapper_dir"/`basename $filename`already_mount=`df -h | grep $mounted_success_flag | wc -l`if [ $already_mount -eq 1 ];then echo "$mounted_success_flag already mounted" exitficount=`ls $mount_dir | wc -l`if [ $count -gt 0 ];then echo "$mount_dir is not a empty directory" exitfidevice="`basename $&#123;filename&#125;`"sudo cryptsetup luksOpen $filename $deviceif [ ! -L $mapper_dir/$device ];then echo "$mapper_dir/$device is not exist" exitfiif [ ! -d $mount_dir ];then mkdir -p $mount_dirfimount $mapper_dir/$device $mount_dir 使用举例, 把encrypted.vol解密并且挂载到/mnt目录sudo ./mount_encrypted_virtual_disk.sh encrypted.vol /mnt 卸载关机或者重启是可以自动卸载已经挂载的设备，我们也可以手动卸载，umount_encrypted_virtual_disk.sh脚本会卸载所有已经挂载的加密后的虚拟磁盘文件.#!/bin/bashif [ `id -u` -ne 0 ];then echo "non-root user" exitfimapper_dir=/dev/mappercount=`df -h | grep "$mapper_dir" | wc -l`for((index=0; index&lt;$count; index++))do string=`df -h | grep "$mapper_dir" | awk '&#123;print $1"#"$6&#125;'` string=$&#123;string//#/ &#125;; array=($string) device=$&#123;array[0]&#125; mounted_dir=$&#123;array[1]&#125; umount $mounted_dir &amp;&amp; cryptsetup close $devicedone 使用举例, 卸载所有已挂载加密磁盘.sudo ./umount_encrypted_virtual_disk.sh]]></content>
+      <categories>
+        <category>Linux</category>
+        <category>shell</category>
+      </categories>
+      <tags>
+        <tag>加密</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[petalinux预留内存]]></title>
+    <url>%2F2019%2F03%2F05%2Fpetalinux_reserved_memory%2F</url>
+    <content type="text"><![CDATA[最近在开发过程中，希望能保留一段内存不被系统使用，这样这段内存里面的数据就不会被系统程序修改。我使用的是xilinx zynqMP Soc系列的开发板，按照xilinx wiki 预留内存教程试了下。 步骤1. 使用petalinux创建一个project2. 修改设备树文件system-top.dts，添加预留内存的设备树节点3. petalinux-build 适用于 64-bit Cortex-A53 MPSoC的节点信息reserved-memory &#123; #address-cells = &lt;2&gt;; #size-cells = &lt;2&gt;; ranges; reserved: buffer@0 &#123; no-map; reg = &lt;0x0 0x40000000 0x0 0x10000000&gt;; &#125;;&#125;; reserved-driver@0 &#123; compatible = "xlnx,reserved-memory"; memory-region = &lt;&amp;reserved&gt;;&#125;; 适用于32-bit Cortex-A9 Zynq的节点信息reserved-memory &#123; #address-cells = &lt;1&gt;; #size-cells = &lt;1&gt;; ranges; reserved: buffer@0x38000000 &#123; no-map; reg = &lt;0x38000000 0x08000000&gt;; &#125;;&#125;; reserved-driver@0 &#123; compatible = "xlnx,reserved-memory"; memory-region = &lt;&amp;reserved&gt;;&#125;;]]></content>
+      <categories>
+        <category>embeded</category>
+      </categories>
+      <tags>
+        <tag>petalinux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[使用cryptsetup加密虚拟磁盘文件]]></title>
+    <url>%2F2019%2F03%2F05%2Fencrypt_virtual_disk%2F</url>
+    <content type="text"><![CDATA[我一般对自己的移动硬盘加密实现防止数据泄露，但总是带个移动硬盘感觉不是很方便，有一些小文件想要加密的话其实可以单独加密，这样你上传加密后的数据到网盘也不用担心数据泄露. 下面介绍加密虚拟磁盘的部分转载于编程随想的博客. 并且经过我在ubuntu 18.04上的实践. 创建虚拟磁盘创建虚拟磁盘的方式有多种, 下面创建一个25Mb大小的虚拟磁盘.dd if=/dev/zero of=/data/encrypted.vol bs=1M count=25或者fallocate -l 25M /data/encrypted.vol cryptsetup加密(格式化)虚拟磁盘cryptseup 有很多详细参数，比如可以指定加密算法什么的，这里用默认参数.cryptsetup luksFormat /data/encrypted.vol 打开加密后的磁盘xxx可以随意指定, 打开成功后会在/dev/mapper目录下出现xxxcryptsetup luksOpen /data/encrypted.vol xxx 创建文件系统由于加密盘已经打开并映射到 /dev/mapper/xxx 你可以在 /dev/mapper/xxx 之上创建文件系统.mkfs.ext4 /dev/mapper/xxx 下面进行文件系统的挂载。mount /dev/mapper/xxx /mnt 接下来，你就可以通过 /mnt/xxx 目录去访问该文件系统。当你往 /mnt/xxx 下面创建下级目录或下级文件，这些东东将被存储到该虚拟加密盘上。 退出当你使用完，要记得退出。包括下面两步：卸载文件系统umount /mnt/xxx 关闭加密盘cryptsetup close xxx]]></content>
+      <categories>
+        <category>Linux</category>
+        <category>加密</category>
+      </categories>
+      <tags>
+        <tag>加密</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[交叉编译总结]]></title>
+    <url>%2F2019%2F01%2F12%2Fcross_compiling_summary%2F</url>
+    <content type="text"><![CDATA[近来交叉编译的需求越来越多, 不管是开源的程序还是自己的程序都想交叉编译到开发板上。交叉编译多个project以后发现常见的方式就三种(仅限于我经手的)。 通过configure配置的 export PATH=$PATH:$PATH_TO_CROSS_COMPILE_TOOL./configure --host=aarch64-linux-gnu make &amp;&amp; make install 直接Makefile的 export PATH=$PATH:$PATH_TO_CROSS_COMPILE_TOOLexport CC=aarch64-linux-gnu-gccexport CXX=aarch64-linux-gnu-g++export LD=aarch64-linux-gnu-ldexport AR=aarch64-linux-gnu-arexport RANLIB=aarch64-linux-gnu-ranlibmake &amp;&amp; make install 通过cmake 组织的 SET(CMAKE_SYSTEM_NAME Linux)SET(CMAKE_FIND_ROOT_PATH "/data/Xilinx/zcu102_rv_ss/sw/sysroot")SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)SET(CMAKE_C_COMPILER "$PATH_TO_CROSS_COMPILE_TOOL/aarch64-linux-gnu-gcc")SET(CMAKE_CXX_COMPILER "$PATH_TO_CROSS_COMPILE_TOOL/aarch64-linux-gnu-g++")cmake .. &amp;&amp; make &amp;&amp; make install]]></content>
+      <categories>
+        <category>embeded</category>
+      </categories>
+      <tags>
+        <tag>cross-compile</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[redis移植到ARM Linux]]></title>
+    <url>%2F2019%2F01%2F11%2Fcompile_redis_for_arm_linux%2F</url>
+    <content type="text"><![CDATA[REmote DIctionary Server(Redis) 是一个由Salvatore Sanfilippo写的key-value存储系统。Redis是一个开源的使用ANSI C语言编写、遵守BSD协议、支持网络、可基于内存亦可持久化的日志型、Key-Value数据库，并提供多种语言的API。它通常被称为数据结构服务器，因为值（value）可以是 字符串(String), 哈希(Map), 列表(list), 集合(sets) 和 有序集合(sorted sets)等类型。 tar zxvf redis-5.0.3.tar.gzcd redis-5.0.3export PATH=$PATH:/data/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/export CC=aarch64-linux-gnu-gccexport CXX=aarch64-linux-gnu-g++export LD=aarch64-linux-gnu-ldexport AR=aarch64-linux-gnu-arexport RANLIB=aarch64-linux-gnu-ranlibmake MALLOC=Jemallocmake install PREFIX=install_for_arm_linux 通过上面的操作就可以在ARM Linux上启动redis服务端和客服端了, 但是如果你需要在ARM上用C语言编程去访问redis, 那么你还需要编译出ARM Linux上的库文件(.so 或者.a)。https://github.com/redis/hiredis.git clone下来源代码, 然后交叉编译就可以得到.so和.a 库文件。]]></content>
+      <categories>
+        <category>embeded</category>
+      </categories>
+      <tags>
+        <tag>redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[SQLite3移植到ARM Linux教程]]></title>
+    <url>%2F2019%2F01%2F11%2Fcompile_sqlite3_for_arm_linux%2F</url>
+    <content type="text"><![CDATA[SQLite 是一款轻型的数据库, 是遵守ACID的关联式数据库管理系统, 它的设计目标是嵌入式的, 而且目前已经在很多嵌入式产品中使用，SQLite它占用资源非常的低, 在嵌入式设备中, 可能只需要几百K的内存就够了。SQLite 能够支持Windows、Linux、Unix、Android等主流的操作系统，同时能够跟很多程序语言相结合，如C、C++、 Tcl、C#、PHP、Java等, 还有ODBC接口, 同样比起MySQL、PostgreSQL这两款开源世界著名的数据库管理系统来讲, 它的处理速度比他们都快。 下载SQLite3源代码解压, 选择最新稳定版本的Source Code, 如 sqlite-autoconf-3080600.tar.gz , 就是SQLite 3.8.6版。tar zxvf sqlite-autoconf-3080600.tar.gzcd sqlite-autoconf-3080600 mkdir /data/installexport PATH=$PATH:/data/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin #交叉编译工具路径加入系统环境变量,必须！./configure --host=aarch64-linux-gnu --prefix=/data/installmakemake install –host: 指定交叉编译工具, 一般为arm-none-linux-gnueabi、arm-linux-gnueabihf、aarch64-linux-gnu等, 具体要和目标板用的交叉编译工具对应。–prefix: 指定安装目录, 编译后的文件会全部放在安装目录中。注意: 必须是绝对路径！ 原文链接: www.veryarm.com/440.html]]></content>
+      <categories>
+        <category>embeded</category>
+      </categories>
+      <tags>
+        <tag>sqlite3</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[C++编写单实例运行的程序]]></title>
+    <url>%2F2019%2F01%2F04%2Fcpp_singleton_program%2F</url>
+    <content type="text"><![CDATA[有些程序要求只运行一个实例, 实现单实例的方法也有多种, 之前我一般是通过锁住一个pid文件实现单实例运行, 最近在网上看到绑定套接字的方法实现单实例运行，这种方法在程序退出时候能够自动释放套接字, 实现了自我清理的过程, 很是优雅。 //singleton.h#include &lt;iostream&gt;#include &lt;string&gt;class Singleton&#123;public: Singleton(uint16_t port) : socket_fd_(-1), rc_(1), port_(port) &#123;&#125; ~Singleton(); bool operator()();private: int socket_fd_ = -1; int rc_; uint16_t port_;&#125;; //singleton.cpp#include &lt;unistd.h&gt;#include &lt;string.h&gt;#include &lt;netinet/in.h&gt;#include "singleton.h"Singleton::~Singleton()&#123; if (socket_fd_ != -1) &#123; close(socket_fd_); &#125;&#125;bool Singleton::operator()()&#123; if (socket_fd_ == -1 || rc_) &#123; socket_fd_ = -1; rc_ = 1; if ((socket_fd_ = socket(AF_INET, SOCK_DGRAM, 0)) &lt; 0) &#123; throw std::runtime_error(std::string("could not create socket: ") + strerror(errno)); &#125; else &#123; struct sockaddr_in name; name.sin_family = AF_INET; name.sin_port = htons(port_); name.sin_addr.s_addr = htonl(INADDR_ANY); rc_ = bind(socket_fd_, (struct sockaddr *) &amp;name, sizeof(name)); &#125; &#125; return (socket_fd_ != -1 &amp;&amp; rc_ == 0);&#125; //main.cpp#include &lt;iostream&gt;#include "singleton.h"int main(int argc, char *argv[])&#123; const int port = 5678; Singleton single(port); if (!single()) &#123; std::cerr &lt;&lt; "program already running." &lt;&lt; std::endl; exit(-1); &#125; while (true) &#123; // keep program do not return ; &#125; return 0;&#125;]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[petalinux 自动构建脚本]]></title>
+    <url>%2F2019%2F01%2F04%2Fxilinx_petalinux_auto_build_script%2F</url>
+    <content type="text"><![CDATA[使用xilinx的petalinux构建BOOT.BIN和image.ub需要输入多条指令, 每次都这样输入的话真的会累死人, 所以想到把指令写成脚本, 一劳永逸。 # /etc/zcu102# fpga 导出的hdf和bit文件的存放目录hdf_file_dir=/samba/fpga_hdf_and_bit# petalinux的安装目录petalinux_install_dir=/opt/petalinux-2017.4# 板级支持包board_support_package="/opt/board_support_package/xilinx-zcu102-v2017.4-final.bsp"# 开发板所属系列template_type="zynqMP" #!/bin/bash## Auto build linux image for zcu102/zcu104 board#board_name="zcu102"conf_file="/etc/$&#123;board_name&#125;"if [ ! -f $conf_file ];then echo "$conf_file file does not exist" exitfisource $conf_filefpga_bitstream_config=""project_workspace=~/petalinux_workspacecurrent_time="`date +%m%d%H%M%S`"self_pid=$$project_name="petalinux_project_$&#123;current_time&#125;_$&#123;self_pid&#125;_$&#123;board_name&#125;"error_log()&#123; echo -e "\033[31m\033[01m[ERROR]: $1 \033[0m"&#125;warning_log()&#123; echo -e "\033[33m\033[01m\033[05m[INFO]: $1 \033[0m"&#125;set_petalinux_env()&#123; if [ ! -d $petalinux_install_dir ];then echo "$petalinux_install_dir directory does not exist" exit fi if [ ! -f $petalinux_install_dir/settings.sh -a ! -f $petalinux_install_dir/settings.csh ];then echo "petalinux install directory config error" exit fi bash_num=`echo $SHELL | grep "bash" | wc -l` csh_num=`echo $SHELL | grep "csh" | wc -l` if [ $bash_num -eq 0 -a $csh_num -eq 0 ];then echo "please ensure your shell type is bash or csh" exit fi echo "shell type: $SHELL" if [ $bash_num -eq 1 ];then source $petalinux_install_dir/settings.sh fi if [ $csh_num -eq 1 ];then source $petalinux_install_dir/settings.csh fi&#125;create_project()&#123; if [ -d $project_name ];then rm -rf $project_name fi if [ ! -d $project_workspace ];then mkdir -p $project_workspace fi if [ ! -f $board_support_package ];then echo "$board_support_package file does not exist" exit fi cd $project_workspace petalinux-create --type project --template $template_type --name $project_name --source $board_support_package&#125;change_dir_to_project()&#123; cd $project_workspace/$project_name&#125;config_hdf_file()&#123; if [ ! -d $hdf_file_dir ];then echo "$hdf_file_dir directory does not exist" exit fi change_dir_to_project inner_hdf_and_bit_dir="$project_workspace/$project_name/hdf_and_bit" cp -rf $hdf_file_dir $inner_hdf_and_bit_dir if [ $? -ne 0 ]; then error_log "copy the .hdf and .bit failed" exit fi hw_description_config="--get-hw-description=$inner_hdf_and_bit_dir" find_bit_file_cmd="find $inner_hdf_and_bit_dir -maxdepth 1 -name "*.bit" " find_hdf_file_cmd="find $inner_hdf_and_bit_dir -maxdepth 1 -name "*.hdf" " bit_file_number=`$find_bit_file_cmd | wc -l` hdf_file_number=`$find_hdf_file_cmd | wc -l` if [ $bit_file_number -eq 0 -a $hdf_file_number -eq 0 ];then warning_log "script will not load the hw-description" hw_description_config="" fpga_bitstream_config="" fi if [ $bit_file_number -gt 1 -o $hdf_file_number -gt 1 ];then error_log "there are multiple .bit/.hdf files" exit fi bit_file=`$find_bit_file_cmd` if [ -f $bit_file ];then fpga_bitstream_config="--fpga $bit_file" fi petalinux-config $hw_description_config&#125;clean_exist_bootloader()&#123; petalinux-build -c bootloader -x distclean&#125;config_kernel()&#123; petalinux-config -c kernel &#125;config_rootfs()&#123; petalinux-config -c rootfs &#125;patch_bug_for_zcu104()&#123; petalinuxbsp_config_file="$project_workspace/$project_name/project-spec/meta-user/conf/petalinuxbsp.conf" echo 'IMAGE_INSTALL_remove = "gstreamer-vcu-examples"' &gt;&gt; $petalinuxbsp_config_file&#125;build_project()&#123; petalinux-build&#125;package_project()&#123; petalinux-package --boot --fsbl images/linux/zynqmp_fsbl.elf --pmufw images/linux/pmufw.elf --u-boot images/linux/u-boot.elf $fpga_bitstream_config&#125;main()&#123; set_petalinux_env create_project change_dir_to_project config_hdf_file # for zcu104 bug, before config_kernel if [ x"$board_name" == x"zcu104" ];then patch_bug_for_zcu104 fi clean_exist_bootloader config_kernel config_rootfs build_project package_project&#125;main]]></content>
+      <categories>
+        <category>Linux</category>
+        <category>shell</category>
+      </categories>
+      <tags>
+        <tag>petalinux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[为xilinx zcu102开发板移植sz和rz两个命令]]></title>
+    <url>%2F2018%2F12%2F04%2Fcompile_rz_sz_for_xilinx_zcu102%2F</url>
+    <content type="text"><![CDATA[调试xilinx zcu102开发板程序的时候, 需要频繁地把编译出来的程序上传到开发板, 程序输出结果或者log什么的有时也需要从开发板下载到我的pc机。虽然xilinx官方很贴心的内置了ftpget和ftpput这两个工具, 但是我还是觉得不是很顺手, 所以才想到linux上的rz和sz命令能不能移植到到xilinx zcu102开发板上。一番搜索后得知lrzsz可用, 至于lrzsz和rzsz之间有什么关系我就不是很清楚了。这是官方的介绍: lrzsz is a heavily rehacked version of the last public domain release of Omen Technologies rzsz package. 下载lrzsz源代码解压, 现在下载到的应该是 lrzsz-0.12.20.tar.gz , 因为这个程序最后一次更新是在1998年。 tar zxvf lrzsz-0.12.20.tar.gz 然后就是交叉编译:cd lrzsz-0.12.20./configure --host=arm-linux# 这里需要把CC的值更换为你的交叉编译工具, LDFLAGS=-static 务必要是静态链接make CC=/data/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/aarch64-linux-gnu-gcc LDFLAGS=-static 最后编译生成的文件在src目录, 分别是lrz和lsz, 把这两个文件复制到xilinx zcu102开发板。xshell或者SecureCRT连接到开发板, 直接运行lrz就可以上传文件到开发板了, 会弹出来一个文件选择框, 很方便操作; 如果需要从开发版下载文件到本机就运行lsz加上要下载的文件名称。lrzlsz filename 如果你习惯了linux上的rz, sz命令, 你可以把lrz, lsz重命名为rz, sz或者alias取个别名。]]></content>
+      <categories>
+        <category>embeded</category>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>rzsz</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[清空opencv里面VideoCapture采集图像的缓冲区]]></title>
+    <url>%2F2018%2F12%2F01%2Fclean_opencv_videocapture_buffer%2F</url>
+    <content type="text"><![CDATA[用opencv采集视频的时候, 一般使用VideoCapture这个类来完成采集工作。我的摄像头fps默认是30, 由于我们的fpga还没有完全完成, 检测部分还是arm的cpu来做的, 所以一次人脸识别大概需要90ms左右, 也就是一秒只能处理10帧图像。这就是问题的来源, 我需要每次处理的帧都是最新采集到的帧(实时效果), 偏偏VideoCapture没有清空缓冲区这个操作, 只能等待你把缓冲区的数去读走, VideoCapture才会放入最新的帧。我在网上搜索了下, 有说设置fps的, 也有说设置缓冲区大小的(仅限某些支持的设备), 最终找到一个靠谱的办法, 有人提议新开一个线程专门负责一直读取缓冲区的数据, 从而能保持主线程人脸识别的时候始终能够获取到最新采集的帧。 #include &lt;iostream&gt;#include &lt;thread&gt;#include &lt;opencv2/opencv.hpp&gt;void clean_buffer(cv::VideoCapture *invc)&#123; if (nullptr == invc) &#123; std::cerr &lt;&lt; "nullptr." &lt;&lt; std::endl; exit(-1); &#125; while (true) &#123; // 通过高速连续抓取帧来保持VideoCapture的缓冲区为空 invc-&gt;grab(); std::cout &lt;&lt; "clean the buffer." &lt;&lt; std::endl; &#125;&#125;int main(int argc, char *argv[])&#123; cv::VideoCapture camera(0), *vc_pointer; if (!camera.isOpened()) &#123; std::cerr &lt;&lt; "open camera failed." &lt;&lt; std::endl; exit(-1); &#125; vc_pointer = &amp;camera; std::thread th(clean_buffer, vc_pointer); while (true) &#123; cv::Mat frame; camera &gt;&gt; frame; if (frame.empty()) &#123; std::cerr &lt;&lt; "get frame from camera failed." &lt;&lt; std::endl; return -1; &#125; // TODO 在这里添加你的代码 // face_recognize(); &#125; return 0;&#125;]]></content>
+      <categories>
+        <category>opencv</category>
+      </categories>
+      <tags>
+        <tag>opencv</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[编写适用于多个平台的CMakeLists.txt]]></title>
+    <url>%2F2018%2F12%2F01%2Fmultiple_platforms_cmakelist.txt%2F</url>
+    <content type="text"><![CDATA[有时候你需要把一份代码分别编译到不同的平台运行, 比如我经常需要编译出xilinx zcu102开发板能够运行的程序, 也希望能够编译出一个x86的版本, 这就需要编写能够适用于多个平台的CMakeLists.txt, 可以根据传入的参数生成不同的版本。这方面的教程很多，我也没来得及深入研究cmake的跨平台CMakeLists.txt, 这里我只写出一个我能够使用的例子, 当做是记录方便以后查看。 cmake_minimum_required(VERSION 3.5)project(ArmControlSystem)set(CMAKE_CXX_STANDARD 11)set(target armcontrolsystem)set(source_file_list fpga_net.cpp fpga_keypoint.cpp fpga_feature.cpp fpga_resource.cpp read_config.cpp signal_control.cpp socket.cpp timer.cpp)option(PLATFORM "arm64 or x86_64" arm64)if ($&#123;PLATFORM&#125; STREQUAL "arm64") SET(CMAKE_SYSTEM_NAME Linux) SET(CMAKE_FIND_ROOT_PATH "/data/Xilinx/zcu102_rv_ss/sw/sysroot") SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER) SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY) SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY) SET(CMAKE_C_COMPILER "/data/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/aarch64-linux-gnu-gcc") SET(CMAKE_CXX_COMPILER "/data/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/aarch64-linux-gnu-g++") SET(CMAKE_BUILD_TYPE "Release") include_directories($&#123;CMAKE_FIND_ROOT_PATH&#125;/usr/include $&#123;CMAKE_FIND_ROOT_PATH&#125;/usr/include/eigen3)elseif ($&#123;PLATFORM&#125; STREQUAL "x86_64") SET(CMAKE_BUILD_TYPE "Debug") set(CMAKE_CXX_FLAGS "-g") find_package(OpenCV REQUIRED) include_directories($&#123;OpenCV_INCLUDE_DIRS&#125;)endif ()set(install_root_dir /data/for_xilinx_zcu102/armcontrolsystem/$&#123;PLATFORM&#125;)add_library($&#123;target&#125; SHARED $&#123;source_file_list&#125;)install(TARGETS $&#123;target&#125; LIBRARY DESTINATION $&#123;install_root_dir&#125;/lib)install(FILES fpga_net.h fpga_keypoint.h fpga_feature.h fpga_resource.h read_config.h signal_control.h socket.h timer.h DESTINATION $&#123;install_root_dir&#125;/include) 通过传入PLATFORM变量来确定目标平台, 编译出不同的版本:arm64: cmake -DPLATFORM=arm64 .. &amp;&amp; make"x86_64: cmake -DPLATFORM=x86_64 .. &amp;&amp; make"]]></content>
+      <categories>
+        <category>embeded</category>
+        <category>cmake</category>
+      </categories>
+      <tags>
+        <tag>cmake</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[neon指令集加速arm架构下的浮点型矩阵乘法]]></title>
+    <url>%2F2018%2F11%2F30%2Farm_float_martix_multi%2F</url>
+    <content type="text"><![CDATA[前言最近遇到一个问题, fpga进行卷积后的结果需要乘上一个pca矩阵, 本来打算用fpga做这个矩阵乘法的,考虑到量化后会有精度损失，打算先用arm实现，如果效果还不错的话，那就不用fpga做矩阵乘法。下面是c++写矩阵乘法的优化过程。 约定:矩阵M(1x2048) : fpga_output_float_value;矩阵N(2048x128) : pca_array_row / pca_array_col , 按行/列存储, 矩阵的内容一致 v1版本: 直接按照矩阵乘法的定义编写代码，所写即所想std::vector&lt;float&gt; matrix_multi_result;for (int col = 0; col &lt; 128; col++)&#123; float temp = 0.0; for (int row = 0; row &lt; 2048; row++) &#123; temp += fpga_output_float_value[row] * pca_array_row[row * 128 + col]; &#125; matrix_multi_result.push_back(temp);&#125; v2版本: 改写for循环使得sum[0], sunm[1], sum[2], sum[3]各自运算过程相互独立，让编译器自动优化, 记得编译选项中加上优化参数 -O3float sum[4] = &#123;0.0, 0.0, 0.0, 0.0&#125;;std::vector&lt;float&gt; matrix_multi_result;for (int col = 0; col &lt; 128; ++col)&#123; float temp = 0.0; for (int row = 0; row &lt; 2048; row += 4) &#123; sum[0] = fpga_output_float_value[row + 0] * pca_array_row[(row + 0) * 128 + i]; sum[1] = fpga_output_float_value[row + 1] * pca_array_row[(row + 1) * 128 + i]; sum[2] = fpga_output_float_value[row + 2] * pca_array_row[(row + 2) * 128 + i]; sum[3] = fpga_output_float_value[row + 3] * pca_array_row[(row + 3) * 128 + i]; temp += sum[0] + sum[1] + sum[2] + sum[3]; &#125; matrix_multi_result.push_back(temp);&#125; v3版本: 使用neon指令集优化运算过程// neon 指令集实现的"乘加"过程float dot_product_intrinsic(float * __restrict vec1, float * __restrict vec2, int length)&#123; float32x4_t vec1_q, vec2_q; float32x4_t sum_q = &#123;0.0, 0.0, 0.0, 0.0&#125;; float32x2_t tmp[2]; float result = 0.0; for (int i = 0; i &lt; (length &amp; ~3); i += 4) &#123; vec1_q = vld1q_f32(&amp;vec1[i]); vec2_q = vld1q_f32(&amp;vec2[i]); sum_q = vmlaq_f32(sum_q, vec1_q, vec2_q); &#125; tmp[0] = vget_high_f32(sum_q); tmp[1] = vget_low_f32(sum_q); tmp[0] = vpadd_f32(tmp[0], tmp[1]); tmp[0] = vpadd_f32(tmp[0], tmp[0]); result = vget_lane_f32(tmp[0], 0); return result;&#125;// 主循环直接调用函数 dot_product_intrinsicstd::vector&lt;float&gt; matrix_multi_result;const int length = 2048;for (int col = 0; col &lt; 128; ++col)&#123; float temp = 0.0; temp = dot_product_intrinsic(fpga_output_float_value.data(), const_cast&lt;float *&gt; (pca_array_col[col]), length); matrix_multi_result.push_back(temp);&#125; 下面是三个版本的耗时统计, 可以看到使用neon指令集优化后已经不需要fpga做这个矩阵乘法了。]]></content>
+      <categories>
+        <category>embeded</category>
+      </categories>
+      <tags>
+        <tag>neon</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[xilinx zcu102 serial和jtag冲突, 不能同时连接]]></title>
+    <url>%2F2018%2F11%2F13%2Fxilinx_zcu102_serial_jtag_confilict%2F</url>
+    <content type="text"><![CDATA[用petalinux 2017.4制作了zcu102开发板的Linux启动镜像, 一直用串口连接到开发板运行和调试程序都没问题, 今天把串口和jtag线都连接上, jtag用vivado连接开发板后串口就假死了(jtag还能使用), 即使在这时候拔掉jtag线也不能恢复串口的连接。最后是在xilinx的官网找到的解决方法。 petalinux-config -c kernel 在这一步配置内核的时候取消勾选 CPU idle PM support , 具体的结构如下: CPU Power Management ---&gt; -&gt; CPU Idle ---&gt; [ ] CPU idle PM support]]></content>
+      <categories>
+        <category>embeded</category>
+      </categories>
+      <tags>
+        <tag>xilinx</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[解决编译opencv 3.2.0遇到undefined reference to cblas_cgemm]]></title>
+    <url>%2F2018%2F11%2F11%2Fopencv_compile_error_cblas_cgemm%2F</url>
+    <content type="text"><![CDATA[编译opencv 3.2.0 居然报错了, 错误信息如下:libopencv_core.so.3.2.0: undefined reference to 'cblas_cgemm(CBLAS_ORDER, CBLAS_TRANSPOSE, CBLAS_TRANSPOSE...' 通过google关键字cblas_cgemm的时候看到和lapack有关, 这个lapack呢是个数学相关的库, 一查opencv的CMakeLists.txt还真的有这么一个选项, 最后把with_lapack选项关闭了就正常通过了。]]></content>
+      <categories>
+        <category>opencv</category>
+      </categories>
+      <tags>
+        <tag>opencv</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Linux SecureCRT 完全破解]]></title>
+    <url>%2F2018%2F10%2F28%2Flinux_active_securecrt%2F</url>
+    <content type="text"><![CDATA[相关说明上篇发了个Linux(Ubuntu) 下 SecureCRT 7 30天循环破解在启动的时候会多输入一次确认窗口, 后来maz-1网友留言说可以用Windows破解后程序替换Linux下的二进制部分, 然后用注册机正常注册, 试了一下果然可以(具体操作可以查看他的留言), 后来为了方便简单弄成破解脚本方便大家使用(纯属YY), 具体使用过程查看下面说明.程序支持Linux系统(Ubuntu Fedora)和MacOSX 多平台. 操作过程操作过程都在终端执行,以下操作均在centos7 实践, 下载程序:wget http://download.boll.me/securecrt_linux_crack.pl 运行破解 /usr/bin/SecureCRT要填写真实的SecureCRT绝对路径sudo perl securecrt_linux_crack.pl /usr/bin/SecureCRT 把注册信息填写到SecureCRT即可激活。 注意点：1，系统需要安装perl 5.0及以上版本.2，如果提示了crack successfull 是OK的。但你任然invalid，你的错误提示一般是, 运行了和破解路径不同的SecureCRT， 如破解的路径是/usr/bin/SecureCRT, 运行的却是/usr/local/bin/SecureCRT或者是破解完没有退出重新运行SecureCRT.导致的. &ensp;原文路径: https://www.boll.me/archives/599]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>securecrt</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[ncnn添加自己的layer]]></title>
+    <url>%2F2018%2F10%2F28%2Fncnn_add_own_layer%2F</url>
+    <content type="text"><![CDATA[ncnn 是tencent公司开源的神经网络前向计算框架, github地址：https://github.com/Tencent/ncnn。通过简单的步骤可以添加自己的layer, 比如用位运算实现卷积, 取名 convolutionbitoperate 。 1.写好convolutionbitoperate.h convolutionbitoperate.cpp, 把文件放到layer目录。 2.修改src目录下的CMakeLists.txt, 添加自己的layer convolutionbitoperate。&ensp; 3.重新编译ncnn就可以完成添加自己的layer, 编译的步骤可以参考github地址。]]></content>
+      <categories>
+        <category>deep learning</category>
+      </categories>
+      <tags>
+        <tag>ncnn</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[C++ 获取mysql数据库以blob类型储存的图片]]></title>
+    <url>%2F2018%2F10%2F28%2Fcpp_get_picture_from_mysql_database%2F</url>
+    <content type="text"><![CDATA[最近遇到个用C++代码取出以blob类型存放在mysql数据库里面图片的需求, 粗略的翻了翻mysql的api文档, 写了个最简单的实现: #include &lt;iostream&gt;#include &lt;fstream&gt;#include &lt;sstream&gt;#include &lt;cstring&gt;#include &lt;mysql/mysql.h&gt;using namespace std;int main()&#123; const char username[] = "username"; const char password[] = "password"; const char host[] = "192.168.0.100"; const char dbname[] = "dbname"; MYSQL conn; if(NULL == mysql_init(&amp;conn)) &#123; cerr &lt;&lt; "init conn fail." &lt;&lt; endl; exit(-1); &#125; if (NULL == mysql_real_connect(&amp;conn, host, username, password, dbname, 0, NULL, 0)) &#123; cerr &lt;&lt; "connect to database error" &lt;&lt; endl; exit(-1); &#125; char sql[] = "select octet_length(picture), picture from tablename"; if (0 != mysql_real_query(&amp;conn, sql, strlen(sql))) &#123; cerr &lt;&lt; "query error." &lt;&lt; endl; exit(-1); &#125; MYSQL_RES * result = NULL; result = mysql_store_result(&amp;conn); if (NULL == result) &#123; cerr &lt;&lt; "store result error." &lt;&lt; endl; exit(-1); &#125; if (0 &gt;= mysql_affected_rows(&amp;conn)) &#123; cerr &lt;&lt; "no data be found." &lt;&lt; endl; exit(-1); &#125; int count = 0; string path = "/home/sakuragl/pictures/"; MYSQL_ROW row_record; while (row_record = mysql_fetch_row(result)) &#123; unsigned int size = 0; char * temp_buff = NULL; sscanf(row_record[0], "%d", &amp;size); if(0 == size ) &#123; cerr &lt;&lt; "invalid record!" &lt;&lt; endl; continue; &#125; temp_buff = (char *)malloc(size * sizeof(char) + 1); if(NULL == temp_buff) &#123; cerr &lt;&lt; "malloc error!" &lt;&lt;endl; exit(1); &#125; memset(temp_buff, 0, size * sizeof(char) + 1); memcpy(temp_buff, row_record[1], size * sizeof(char)); stringstream pic_name; pic_name &lt;&lt; count &lt;&lt; ".jpg"; ofstream outfile(path + pic_name.str(), ios::binary); outfile.write(temp_buff, size); count++; free(temp_buff); &#125; mysql_close(&amp;conn); return 0;&#125;]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[通过ssh X11转发使用远程gui程序]]></title>
+    <url>%2F2018%2F10%2F28%2Fssh_remote_x11%2F</url>
+    <content type="text"><![CDATA[ssh协议可以转发X11数据, 从而达到使用远程gui程序的功能, 现在有 客服端C ：192.168.0.13 服务器S ：192.168.0.200 首先确保在客服端C 上能够通过 ssh sakuragl@192.168.0.200 连接到服务器S, 如果需要使用远程的gui程序，需要在服务器和客服端上分别做以下配置： 1、服务器： sudo vim /etc/ssh/sshd_config 修改以下配置，如果在配置文件里面没有找到，就直接添加到文件末尾即可，最后保存退出:wqX11Forwarding yesX11DisplayOffset 10X11UseLocalhost yes 服务器端修改完成后需要执行命令重启sshd服务 sudo systemctl restart sshd.service 2.客服端：sudo vim /etc/ssh/ssh_config 同理修改以下配置，保存退出。ForwardAgent yesForwardX11 yesForwardX11Trusted yes 客服端修改完成后也需要执行对应的命令重启ssh服务 sudo systemctl restart ssh.service 3、配置已经修改完了，现在开始连接测试，在客服端C 上执行命令:xhost + //允许服务器的的x11界面连接过来ssh -X sakuragl@192.168.0.200 //-X参数表示转发X11数据， 把用户名称sakuragl以及服务器S的ip地址替换为你自己的 现在你已经登陆了服务器，而且还有一个终端是连接的状态，和平时ssh连接没有什么区别，除了会转发X11的数据，你可以在终端里面用命令运行你想要运行的gui程序比如：firefox , google-chrome , xclock 现在我以xclock为例演示一下, xclock程序会显示一个图形时钟xclock 等待一小会儿 你就可以在客服端C 的桌面上看到服务器S 的xclock了，如下图：]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>ssh</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[cmake 交叉编译]]></title>
+    <url>%2F2018%2F10%2F26%2Fcmake_crosscompile%2F</url>
+    <content type="text"><![CDATA[之前编译代码都是纯手写makefile脚本 , 和手写makefile相比cmake语法简单易懂容易编写。遇到cmake之后我就再也没有手写makefile了, 都是直接写CMakeLists.txt然后自动生成makefile。 cmake生成交叉编译的makefile，可以有两种方式： 手写CMakeLists.txt通过手写交叉编译CMakeLists.txt然后生成交叉编译makefile。以最简单的helloworld为例: // main.cpp#include &lt;iostream&gt;int main()&#123; std::cout &lt;&lt; "Hello, World!" &lt;&lt; std::endl; return 0;&#125; #对应的标准 CMakeLists.txtcmake_minimum_required(VERSION 3.10)project(helloworld)set(CMAKE_CXX_STANDARD 11)add_executable(helloworld main.cpp) 现在改写为适用于xilinx zcu102开发板的CMakeLists.txtcmake_minimum_required(VERSION 3.10)project(helloworld)set(CMAKE_CXX_STANDARD 11)add_executable(helloworld main.cpp)#添加以下语句SET(CMAKE_SYSTEM_NAME Linux)SET(CMAKE_FIND_ROOT_PATH "/data/Xilinx/zcu102_rv_ss/sw/sysroot")SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)SET(CMAKE_C_COMPILER "/data/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/aarch64-linux-gnu-gcc")SET(CMAKE_CXX_COMPILER "/data/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/aarch64-linux-gnu-g++") 我只添加了后面的7行内容，下面分别讲解每一行的具体含义: SET(CMAKE_SYSTEM_NAME Linux)告诉cmake编译的时候目标平台target是什么 , 默认的时候cmake会以本机平台类型为目标平台 SET(CMAKE_FIND_ROOT_PATH “/data/Xilinx/zcu102_rv_ss/sw/sysroot”)告诉CMake在编译的时候查找所需文件(头文件, 库文件, 编译用到的程序)的根目录在哪里 SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)查找编译用到的程序时 , 绝对不去上面指定的根目录查找 (那就会在本机查找);查找编译过程用到的库文件时 , 只去上面指定的根目录查找;查找编译过程用到的头文件时 , 只去上面指定的根目录查找; SET(CMAKE_C_COMPILER “/data/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/aarch64-linux-gnu-gcc”)SET(CMAKE_CXX_COMPILER “/data/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/aarch64-linux-gnu-g++”)分别指定交叉编译的C和C++编译器 下面执行命令开始编译: 编译成功后 , 用file命令可以看到编译出来的helloworld是ARM aarch64架构的。 cmake-gui 自动生成除了手写CMakeLists.txt, 还可以通过cmake-gui这个图形工具来生成交叉编译的CMakeLists.txt和makefile。 点击configure , 选择如图所示 : 这里的配置就和手写CMakeLists.txt里面的一样 点击generate自动生成makefile后，进入到相应的目录执行make 同样地 , 也成功生成了交叉编译的helloworld。]]></content>
+      <categories>
+        <category>embeded</category>
+        <category>cmake</category>
+      </categories>
+      <tags>
+        <tag>cmake</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[kms服务器]]></title>
+    <url>%2F2018%2F10%2F26%2Fkms_active_server%2F</url>
+    <content type="text"><![CDATA[py-kms是github上一个开源的项目, 用来激活windwos和office。下载py-kms: https://github.com/myanaloglife/py-kms python server.py 这样py-kms服务就启动好了,如果需要后台运行可以制作deamon脚本。py-kms可以激活企业/专业版vl windows系统和vol版本的office软件。参考以下命令: windows：以管理员权限打开命令提示符，使用下面的命令即可激活:slmgr /skms 192.168.0.100slmgr /ato office: 进入office安装目录C:\Program Files\Microsoft Office\Office15后,输入下面命令进行激活:cscript ospp.vbs /sethst:192.168.0.100 #设置kms服务器地址cscript ospp.vbs /act #激活cscript ospp.vbs /dstatus #查询激活状态]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>kms</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[使用Xilinx SDSoc在Xilinx zcu102开发板上编程HelloWorld]]></title>
+    <url>%2F2018%2F10%2F21%2Fxilinx_zcu102_helloworld%2F</url>
+    <content type="text"><![CDATA[关于Xilinx SDSoc的介绍我就不再复述了，我理解的也不一定准确，可以阅读官方文档了解SDSoc，你可以把它理解为一个集成开发环境 (IDE)，通过SDSoc我们能够简单快速的对Xilinx的开发板进行编程，不用像传统的嵌入式编程那样，需要配置嵌入式开发环境，交叉编译链，有时还得去移植Linux到开发板上，而这些繁琐的工作SDSoc都替你做了，相比较传统SoC设计流程，SDSoC通过自动生成硬件连接和软件驱动程序大大简化了Zynq SoC和MPSoC的开发过程，现在开发人员不需要深层次的了解底层指令就能进行嵌入式开发，这无疑是开发人员的一大利器。 第一步就是安装Xilinx SDx, 我安装的是2017.4版Xilinx_SDx_2017.4_1216_1.tar.gz 点击下载 解压后执行./xsetup就可以安装, 请注意安装目录需要有能够写入的权限（或者 sudo ./xsetup）:tar zxvf Xilinx_SDx_2017.4_1216_1.tar.gzcd Xilinx_SDx_2017.4_1216_1/./xsetup 安装完成后会弹出一个license管理的界面，选择左边的load license，选择你本地的license文件，加载好了就可以关闭了，接着进入安装时选定的安装目录（我的是： /opt/Xilinx）, 启动sdx:cd /opt/Xilinx/SDx/2017.4/bin./sdx 创建一个SDx工程, SDx界面的左上角，点击File -&gt; New -&gt; SDx Project 填写项目名称和工作路径 选择开发板型号，我这里是zcu102 这一页的属性不用修改,默认就可以 选择工程的类型，xinlinx给出了一些模板，这里选择Empty Applicaton，点击finish完成。 为我们的程序添加一个源代码文件，左边的project视图里面，鼠标移动到src的目录上点击右键New -&gt; File 在helloworld.cpp里面写上那段延续了几十年的古老的代码:#include &lt;iostream&gt;using namespace std;int main()&#123; cout &lt;&lt; "Hello World from Xilinx zcu102." &lt;&lt; endl; return 0;&#125; 编译源代码，点击SDx上方的build图标，图标旁边的三角形可以下拉选择Debug/Release，我这里选择的Releasebuild完成后project视图会多出来一个Release的文件夹(若果你选择的Debug，那就会多出来一个Debug的文件夹)。我们需要把sd_card文件夹里面的所有文件全部复制到sd卡上(事先格式化为fat32格式) 现在sd卡里面的文件是这样的 设置zcu102从sd卡启动，这里可以参考zcu102的快速指南手册，主要就是SW6的4个开关一定要拨正确来张特写 连接上串口，串口线和android数据线一样的那两根都连接到电脑就可以了，其中靠近网卡的那根就是串口，如果分不清楚就都连上电脑，电脑上打开串口工具，我用的SecureCRT，linux下一定要注意用sudo 权限打开，win7下不用。图中的 /dev/ttyUSB0 可能数字 0 会和你的不一致，你可以逐个试一下，其他参数分别为Serial , 115200 , 8 , none , 1 都是下拉选择的，应该不会选错。 这样就能看到启动信息了，在串口通信的终端打印出来的 运行我们的程序，默认情况下你的sd卡会被挂载到/mnt 目录，所以进入/mnt目录就可以执行我们生成的firstSDXProject.elf文件cd /mntls -l./firstSDXProject.elf]]></content>
+      <categories>
+        <category>embeded</category>
+      </categories>
+      <tags>
+        <tag>xilinx</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Xilinx SDSoc 加载opencv库]]></title>
+    <url>%2F2018%2F10%2F21%2Fxilinx_sdsoc_load_opencv%2F</url>
+    <content type="text"><![CDATA[Xilinx SDSoc 加载opencv库需要下载两个文件 xfopencv 和 Revision Platform， Revision Platform需要和具体的开发板型号对应，我用的是zcu102开发板。 1.xfopencv : github地址 https://github.com/Xilinx/xfopencv2.revision platform : https://www.xilinx.com/member/forms/download/design-license-xef.html?akdm=1&amp;filename=zcu102-rv-ss-2017-4.zip A. xfopencv下载好了以后放在 ~/.Xilinx/SDx/2017.4 目录(2017.4请修改为你的实际版本号) B. Revision Platform下载后解压到/opt目录 启动SDx 按照上一篇文章里面的步骤创建一个项目zcu102client，选中创建的项目，鼠标点击菜单栏的Xilinx 选中SDx Liraries 展开Xilinx xfopencv Library , 双击然后选择下面的Add to Project 会让你选择添加到哪个Project，点击ok完成添加。 添加完成后在选中创建的项目，点击Properties，可以看到Libraries下面多出来的就是上一步中SDx IDE自动为我们添加的opencv库。 这里可以把你用不到的库都删除掉，比如我就只用到了opencv_core opencv_videoio opencv_imgcodecs 最后还需要设置一个变量SYSROOT，设置为Revision Platform解压后的路径下的sw/sysroot (需要勾选show system variables才可以看到这个变量)， 如下图: 修改完成后点击菜单栏的build就可以编译代码了。 下面总结一下build过程中遇到的几个问题，希望能给大家一个参考: /opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/../lib/gcc/aarch64-linux-gnu/6.2.1/../../../../aarch64-linux-gnu/bin/ld: cannot find crt1.o/opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/../lib/gcc/aarch64-linux-gnu/6.2.1/../../../../aarch64-linux-gnu/bin/ld: cannot find crti.o/opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/../lib/gcc/aarch64-linux-gnu/6.2.1/../../../../aarch64-linux-gnu/bin/ld: cannot find crtn.o: No such file or directorycollect2: error: ld returned 1 exit status 分析：关注到这里报错的ld程序所在的bin路径，进入同级目录的lib目录,发现确实没有该文件，通过find /opt/zcu102_rv_ss/ -name “crt1.o” 又发现有这个文件存在，所以我们建立一个软连接即可:cd /opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/../lib/gcc/aarch64-linux-gnu/6.2.1/../../../../aarch64-linux-gnu/bincd ../libsudo ln -s /opt/zcu102_rv_ss/sw/sysroot/usr/lib/crt1.o ./crt1.osudo ln -s /opt/zcu102_rv_ss/sw/sysroot/usr/lib/crti.o ./crti.osudo ln -s /opt/zcu102_rv_ss/sw/sysroot/usr/lib/crtn.o ./crtn.o /opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/../lib/gcc/aarch64-linux-gnu/6.2.1/../../../../aarch64-linux-gnu/bin/ld: cannot find /lib/libpthread.so.0/opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/../lib/gcc/aarch64-linux-gnu/6.2.1/../../../../aarch64-linux-gnu/bin/ld: cannot find /usr/lib/libpthread_nonshared.acollect2: error: ld returned 1 exit status 分析：这个错误和上一个不同的是错误信息里面点名道姓的指定了绝对路径下文件找不到，但是用find命令查找的时候发现/opt/zcu102_rv_ss/sw/sysroot下面有/opt/zcu102_rv_ss/sw/sysroot/usr/lib/libpthread.so这个文件，由于xilinx SDx 都是调用静态链接库？动态链接库一般会指向静态链接库，所以用vim打开：sudo vim /opt/zcu102_rv_ss/sw/sysroot/usr/lib/libpthread.so /* GNU ld script Use the shared library, but some functions are only in the static library, so try that secondarily. */OUTPUT_FORMAT(elf64-littleaarch64)GROUP ( /lib/libpthread.so.0 /usr/lib/libpthread_nonshared.a )这里就看出了端倪，果然是被指定了绝对路径，把绝对路径去掉，像这样：GROUP ( libpthread.so.0 libpthread_nonshared.a ) /opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/../lib/gcc/aarch64-linux-gnu/6.2.1/../../../../aarch64-linux-gnu/bin/ld: cannot find libpthread.so.0collect2: error: ld returned 1 exit status 分析：还记得crt1.o crti.o crtn.o 吗， 完全一样的错误信息，我这里为了防止类似的错误继续发生，而且可以看到 /opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/../lib/gcc/aarch64-linux-gnu/6.2.1/../../../../aarch64-linux-gnu/lib 本身是一个空目录，所以索性直接做了两个目录的软连接:cd /opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin/../lib/gcc/aarch64-linux-gnu/6.2.1/../../../../aarch64-linux-gnu/bincd ../libsudo ln -sf /opt/zcu102_rv_ss/sw/sysroot/lib/ .sudo ln -sf /opt/zcu102_rv_ss/sw/sysroot/usr/ . /opt/zcu102_rv_ss/sw/sysroot/usr/include/opencv2/core/cvdef.h error: unknown type name ‘float32x2_t’/opt/zcu102_rv_ss/sw/sysroot/usr/include/opencv2/core/cvdef.h error: unknown type name ‘uint32_t’……. (略过一大堆类似的未知类型) 分析：打开报错的头文件/opt/zcu102_rv_ss/sw/sysroot/usr/include/opencv2/core/cvdef.h 发现未知的类型是条件定义在一个CV_NEON宏下面的，也就是说CV_NEON = 1的时候就会报错，所以我把CV_NEON宏全部定义为了0]]></content>
+      <categories>
+        <category>embeded</category>
+      </categories>
+      <tags>
+        <tag>xilinx</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[编译出arm Android环境下的C++可执行文件]]></title>
+    <url>%2F2018%2F10%2F16%2Fcompile_arm_helloworld%2F</url>
+    <content type="text"><![CDATA[要想编译出arm环境的C++可执行文件主要就是利用交叉编译器进行编译, 编译过程本身都大同小异。 安装交叉编译器，交叉编译器的安装方法大致有下面几种：&ensp;&ensp;&ensp;&ensp;A. debian/ubuntu 系统可以直接输入命令安装: sudo apt install g++-arm-linux-gnueabihfsudo apt install g++-8-arm-linux-gnueabihf #这种方式还可以指定版本 &ensp;&ensp;&ensp;&ensp;B.直接下载交叉编译器的二进制文件，arm官网下载地址，这个网站的下载速度比较慢，可以baidu关键字gcc-arm-none-eabi寻找国内的下载地址，下载解压，把解压目录加入PATH环境变量或者把解压出来的文件复制到/usr/bin目录 &ensp;&ensp;&ensp;&ensp;C.下载Android NDK，NDK里面自带了适用于Android的交叉编译工具链，下载后在prebuilt目录可以找到 &ensp;&ensp;&ensp;&ensp;D.下载gcc源代码，手动编译安装 以上几种方法除了手动编译可能会遇到各种依赖问题以外，其余的都比较简单，我这里刚好使用的是ubuntu 18.04的系统，就采用A方法安装的。 用交叉编译器编译代码，现在写一段很古老的程序，然后用交叉编译器编译：#include&lt;iostream&gt;using namespace std;int main()&#123; cout &lt;&lt; "hello world, from Android C++" &lt;&lt; endl; return 0;&#125; 执行命令编译： arm-linux-gnueabihf-g++-8 -static helloworld.cpp # 一定要加上 -static 静态链接的选项，不然编译出来的a.out执行不了 将Android设备连上电脑，然后通过下面的步骤重新挂载system分区为可读写分区adb root # 该命令需要手机已经rootadb remountadb shell "mount -o rw,remount /system" # rw 表示挂载为可读写read/write 挂载好了以后使用adb shell登录到Android的shell环境，创建一个我们本次测试使用的文件夹”helloworld” 然后使用adb命令把文件push到Android设备中去:adb push ./a.out /data/helloworld 再次登录Android shell环境，为a.out文件赋权限(如果已经有了可执行的权限就可以不用再次赋权限了)，然后运行a.outadb shell #登录Android shell环境cd /data/helloworld #进入a.out所在目录chmod 777 a.out #赋权限为777./a.out #运行a.out 可以看到，最终成功输出了 “hello world, from Android C++” 。]]></content>
+      <categories>
+        <category>embeded</category>
+      </categories>
+      <tags>
+        <tag>arm</tag>
+      </tags>
+  </entry>
+</search>

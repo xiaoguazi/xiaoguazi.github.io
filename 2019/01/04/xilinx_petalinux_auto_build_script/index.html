@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.4.2" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.4.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.4.2" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.4.2',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="使用xilinx的petalinux构建BOOT.BIN和image.ub需要输入多条指令, 每次都这样输入的话真的会累死人, 所以想到把指令写成脚本, 一劳永逸。 # /etc/zcu102# fpga 导出的hdf和bit文件的存放目录hdf_file_dir=/samba/fpga_hdf_and_bit# petalinux的安装目录petalinux_install_dir=/opt/p">
+<meta name="keywords" content="petalinux">
+<meta property="og:type" content="article">
+<meta property="og:title" content="petalinux 自动构建脚本 ">
+<meta property="og:url" content="http://yoursite.com/2019/01/04/xilinx_petalinux_auto_build_script/index.html">
+<meta property="og:site_name" content="小瓜子&#39;s blog">
+<meta property="og:description" content="使用xilinx的petalinux构建BOOT.BIN和image.ub需要输入多条指令, 每次都这样输入的话真的会累死人, 所以想到把指令写成脚本, 一劳永逸。 # /etc/zcu102# fpga 导出的hdf和bit文件的存放目录hdf_file_dir=/samba/fpga_hdf_and_bit# petalinux的安装目录petalinux_install_dir=/opt/p">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2019-02-13T08:40:36.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="petalinux 自动构建脚本 ">
+<meta name="twitter:description" content="使用xilinx的petalinux构建BOOT.BIN和image.ub需要输入多条指令, 每次都这样输入的话真的会累死人, 所以想到把指令写成脚本, 一劳永逸。 # /etc/zcu102# fpga 导出的hdf和bit文件的存放目录hdf_file_dir=/samba/fpga_hdf_and_bit# petalinux的安装目录petalinux_install_dir=/opt/p">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/01/04/xilinx_petalinux_auto_build_script/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>petalinux 自动构建脚本  | 小瓜子's blog</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小瓜子's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />Home</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />Categories</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />Archives</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/04/xilinx_petalinux_auto_build_script/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="小瓜子">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/500px-linux-header-picture.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小瓜子's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">petalinux 自动构建脚本 
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2019-01-04 00:00:00" itemprop="dateCreated datePublished" datetime="2019-01-04T00:00:00+08:00">2019-01-04</time>
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a></span>
+
+                
+                
+                  , 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Linux/shell/" itemprop="url" rel="index"><span itemprop="name">shell</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>使用xilinx的petalinux构建BOOT.BIN和image.ub需要输入多条指令, 每次都这样输入的话真的会累死人, 所以想到把指令写成脚本, 一劳永逸。</p>
+<figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="comment"># /etc/zcu102</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># fpga 导出的hdf和bit文件的存放目录</span></span><br><span class="line"><span class="attr">hdf_file_dir</span>=/samba/fpga_hdf_and_bit</span><br><span class="line"><span class="comment"># petalinux的安装目录</span></span><br><span class="line"><span class="attr">petalinux_install_dir</span>=/opt/petalinux-<span class="number">2017.4</span></span><br><span class="line"><span class="comment"># 板级支持包</span></span><br><span class="line"><span class="attr">board_support_package</span>=<span class="string">"/opt/board_support_package/xilinx-zcu102-v2017.4-final.bsp"</span></span><br><span class="line"><span class="comment"># 开发板所属系列</span></span><br><span class="line"><span class="attr">template_type</span>=<span class="string">"zynqMP"</span></span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Auto build linux image for zcu102/zcu104 board</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"></span><br><span class="line">board_name=<span class="string">"zcu102"</span></span><br><span class="line">conf_file=<span class="string">"/etc/<span class="variable">$&#123;board_name&#125;</span>"</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ ! -f <span class="variable">$conf_file</span> ];<span class="keyword">then</span></span><br><span class="line">	<span class="built_in">echo</span> <span class="string">"<span class="variable">$conf_file</span> file does not exist"</span></span><br><span class="line">	<span class="built_in">exit</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="built_in">source</span> <span class="variable">$conf_file</span></span><br><span class="line"></span><br><span class="line">fpga_bitstream_config=<span class="string">""</span></span><br><span class="line">project_workspace=~/petalinux_workspace</span><br><span class="line">current_time=<span class="string">"`date +%m%d%H%M%S`"</span></span><br><span class="line">self_pid=$$</span><br><span class="line">project_name=<span class="string">"petalinux_project_<span class="variable">$&#123;current_time&#125;</span>_<span class="variable">$&#123;self_pid&#125;</span>_<span class="variable">$&#123;board_name&#125;</span>"</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">error_log()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">echo</span> -e <span class="string">"\033[31m\033[01m[ERROR]: <span class="variable">$1</span> \033[0m"</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">warning_log()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">echo</span> -e <span class="string">"\033[33m\033[01m\033[05m[INFO]: <span class="variable">$1</span> \033[0m"</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">set_petalinux_env()</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">if</span> [ ! -d <span class="variable">$petalinux_install_dir</span> ];<span class="keyword">then</span></span><br><span class="line">		<span class="built_in">echo</span> <span class="string">"<span class="variable">$petalinux_install_dir</span> directory does not exist"</span></span><br><span class="line">		<span class="built_in">exit</span></span><br><span class="line">	<span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> [ ! -f <span class="variable">$petalinux_install_dir</span>/settings.sh -a ! -f <span class="variable">$petalinux_install_dir</span>/settings.csh ];<span class="keyword">then</span></span><br><span class="line">		<span class="built_in">echo</span> <span class="string">"petalinux install directory config error"</span></span><br><span class="line">		<span class="built_in">exit</span></span><br><span class="line">	<span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">	bash_num=`<span class="built_in">echo</span> <span class="variable">$SHELL</span> | grep <span class="string">"bash"</span> | wc -l`</span><br><span class="line">	csh_num=`<span class="built_in">echo</span> <span class="variable">$SHELL</span> | grep <span class="string">"csh"</span> | wc -l`</span><br><span class="line">	<span class="keyword">if</span> [ <span class="variable">$bash_num</span> -eq 0 -a <span class="variable">$csh_num</span> -eq 0 ];<span class="keyword">then</span></span><br><span class="line">		<span class="built_in">echo</span> <span class="string">"please ensure your shell type is bash or csh"</span></span><br><span class="line">		<span class="built_in">exit</span></span><br><span class="line">	<span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">	<span class="built_in">echo</span> <span class="string">"shell type: <span class="variable">$SHELL</span>"</span></span><br><span class="line">	<span class="keyword">if</span> [ <span class="variable">$bash_num</span> -eq 1 ];<span class="keyword">then</span></span><br><span class="line">		<span class="built_in">source</span> <span class="variable">$petalinux_install_dir</span>/settings.sh</span><br><span class="line">	<span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> [ <span class="variable">$csh_num</span> -eq 1 ];<span class="keyword">then</span></span><br><span class="line">		<span class="built_in">source</span> <span class="variable">$petalinux_install_dir</span>/settings.csh</span><br><span class="line">	<span class="keyword">fi</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">create_project()</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">if</span> [ -d <span class="variable">$project_name</span> ];<span class="keyword">then</span></span><br><span class="line">		rm -rf <span class="variable">$project_name</span></span><br><span class="line">	<span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> [ ! -d <span class="variable">$project_workspace</span> ];<span class="keyword">then</span></span><br><span class="line">		mkdir -p <span class="variable">$project_workspace</span></span><br><span class="line">	<span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> [ ! -f <span class="variable">$board_support_package</span> ];<span class="keyword">then</span></span><br><span class="line">		<span class="built_in">echo</span> <span class="string">"<span class="variable">$board_support_package</span> file does not exist"</span></span><br><span class="line">		<span class="built_in">exit</span></span><br><span class="line">	<span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">	<span class="built_in">cd</span> <span class="variable">$project_workspace</span></span><br><span class="line">	petalinux-create --<span class="built_in">type</span> project --template <span class="variable">$template_type</span> --name <span class="variable">$project_name</span>  --<span class="built_in">source</span> <span class="variable">$board_support_package</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">change_dir_to_project()</span><br><span class="line">&#123;</span><br><span class="line">	<span class="built_in">cd</span> <span class="variable">$project_workspace</span>/<span class="variable">$project_name</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">config_hdf_file()</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">if</span> [ ! -d <span class="variable">$hdf_file_dir</span> ];<span class="keyword">then</span></span><br><span class="line">		<span class="built_in">echo</span> <span class="string">"<span class="variable">$hdf_file_dir</span> directory does not exist"</span></span><br><span class="line">		<span class="built_in">exit</span></span><br><span class="line">	<span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">	change_dir_to_project</span><br><span class="line">	inner_hdf_and_bit_dir=<span class="string">"<span class="variable">$project_workspace</span>/<span class="variable">$project_name</span>/hdf_and_bit"</span></span><br><span class="line">	cp -rf <span class="variable">$hdf_file_dir</span> <span class="variable">$inner_hdf_and_bit_dir</span></span><br><span class="line">	<span class="keyword">if</span> [ $? -ne 0 ]; <span class="keyword">then</span></span><br><span class="line">		error_log <span class="string">"copy the .hdf and .bit failed"</span></span><br><span class="line">		<span class="built_in">exit</span></span><br><span class="line">	<span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">	hw_description_config=<span class="string">"--get-hw-description=<span class="variable">$inner_hdf_and_bit_dir</span>"</span></span><br><span class="line">	</span><br><span class="line">	find_bit_file_cmd=<span class="string">"find <span class="variable">$inner_hdf_and_bit_dir</span> -maxdepth 1 -name "</span>*.bit<span class="string">" "</span></span><br><span class="line">	find_hdf_file_cmd=<span class="string">"find <span class="variable">$inner_hdf_and_bit_dir</span> -maxdepth 1 -name "</span>*.hdf<span class="string">" "</span></span><br><span class="line">	bit_file_number=`<span class="variable">$find_bit_file_cmd</span> | wc -l`</span><br><span class="line">	hdf_file_number=`<span class="variable">$find_hdf_file_cmd</span> | wc -l`</span><br><span class="line">	<span class="keyword">if</span> [ <span class="variable">$bit_file_number</span> -eq 0 -a <span class="variable">$hdf_file_number</span> -eq 0 ];<span class="keyword">then</span></span><br><span class="line">		warning_log <span class="string">"script will not load the hw-description"</span></span><br><span class="line">		hw_description_config=<span class="string">""</span></span><br><span class="line">		fpga_bitstream_config=<span class="string">""</span></span><br><span class="line">	<span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> [ <span class="variable">$bit_file_number</span> -gt 1 -o <span class="variable">$hdf_file_number</span> -gt 1 ];<span class="keyword">then</span></span><br><span class="line">		error_log <span class="string">"there are multiple .bit/.hdf files"</span></span><br><span class="line">		<span class="built_in">exit</span></span><br><span class="line">	<span class="keyword">fi</span></span><br><span class="line">	</span><br><span class="line">	bit_file=`<span class="variable">$find_bit_file_cmd</span>`</span><br><span class="line">	<span class="keyword">if</span> [ -f <span class="variable">$bit_file</span> ];<span class="keyword">then</span></span><br><span class="line">		fpga_bitstream_config=<span class="string">"--fpga <span class="variable">$bit_file</span>"</span></span><br><span class="line">	<span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">	petalinux-config <span class="variable">$hw_description_config</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">clean_exist_bootloader()</span><br><span class="line">&#123;</span><br><span class="line">	petalinux-build -c bootloader -x distclean</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">config_kernel()</span><br><span class="line">&#123;</span><br><span class="line">	petalinux-config -c kernel	</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">config_rootfs()</span><br><span class="line">&#123;</span><br><span class="line">	petalinux-config -c rootfs	</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">patch_bug_for_zcu104()</span><br><span class="line">&#123;</span><br><span class="line">	petalinuxbsp_config_file=<span class="string">"<span class="variable">$project_workspace</span>/<span class="variable">$project_name</span>/project-spec/meta-user/conf/petalinuxbsp.conf"</span></span><br><span class="line">	<span class="built_in">echo</span> <span class="string">'IMAGE_INSTALL_remove = "gstreamer-vcu-examples"'</span>  &gt;&gt;	<span class="variable">$petalinuxbsp_config_file</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">build_project()</span><br><span class="line">&#123;</span><br><span class="line">	petalinux-build</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">package_project()</span><br><span class="line">&#123;</span><br><span class="line">	petalinux-package --boot --fsbl images/linux/zynqmp_fsbl.elf  --pmufw images/linux/pmufw.elf  --u-boot images/linux/u-boot.elf	<span class="variable">$fpga_bitstream_config</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">main()</span><br><span class="line">&#123;</span><br><span class="line">	set_petalinux_env</span><br><span class="line"></span><br><span class="line">	create_project</span><br><span class="line"></span><br><span class="line">	change_dir_to_project</span><br><span class="line"></span><br><span class="line">	config_hdf_file</span><br><span class="line"></span><br><span class="line">	<span class="comment"># for zcu104 bug, before config_kernel</span></span><br><span class="line">	<span class="keyword">if</span> [ x<span class="string">"<span class="variable">$board_name</span>"</span> == x<span class="string">"zcu104"</span> ];<span class="keyword">then</span></span><br><span class="line">		patch_bug_for_zcu104</span><br><span class="line">	<span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">	clean_exist_bootloader</span><br><span class="line"></span><br><span class="line">	config_kernel</span><br><span class="line"></span><br><span class="line">	config_rootfs</span><br><span class="line"></span><br><span class="line">	build_project</span><br><span class="line"></span><br><span class="line">	package_project</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">main</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/petalinux/" rel="tag"># petalinux</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/04/compile_rz_sz_for_xilinx_zcu102/" rel="next" title="为xilinx zcu102开发板移植sz和rz两个命令">
+                <i class="fa fa-chevron-left"></i> 为xilinx zcu102开发板移植sz和rz两个命令
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/01/04/cpp_singleton_program/" rel="prev" title="C++编写单实例运行的程序 ">
+                C++编写单实例运行的程序  <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/500px-linux-header-picture.png"
+                alt="小瓜子" />
+            
+              <p class="site-author-name" itemprop="name">小瓜子</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">26</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">9</span>
+                    <span class="site-state-item-name">categories</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">小瓜子</span>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.4.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.2"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

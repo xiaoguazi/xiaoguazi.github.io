@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.4.2" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.4.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.4.2" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.4.2',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前言最近遇到一个问题, fpga进行卷积后的结果需要乘上一个pca矩阵, 本来打算用fpga做这个矩阵乘法的,考虑到量化后会有精度损失，打算先用arm实现，如果效果还不错的话，那就不用fpga做矩阵乘法。下面是c++写矩阵乘法的优化过程。 约定:矩阵M(1x2048) : fpga_output_float_value;矩阵N(2048x128) : pca_array_row / pca_arr">
+<meta name="keywords" content="neon">
+<meta property="og:type" content="article">
+<meta property="og:title" content="neon指令集加速arm架构下的浮点型矩阵乘法 ">
+<meta property="og:url" content="http://yoursite.com/2018/11/30/arm_float_martix_multi/index.html">
+<meta property="og:site_name" content="小瓜子&#39;s blog">
+<meta property="og:description" content="前言最近遇到一个问题, fpga进行卷积后的结果需要乘上一个pca矩阵, 本来打算用fpga做这个矩阵乘法的,考虑到量化后会有精度损失，打算先用arm实现，如果效果还不错的话，那就不用fpga做矩阵乘法。下面是c++写矩阵乘法的优化过程。 约定:矩阵M(1x2048) : fpga_output_float_value;矩阵N(2048x128) : pca_array_row / pca_arr">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://yoursite.com/images/arm_float_martix_multi/arm_float_martix_multi_01_20181130.png">
+<meta property="og:updated_time" content="2019-08-07T04:03:15.152Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="neon指令集加速arm架构下的浮点型矩阵乘法 ">
+<meta name="twitter:description" content="前言最近遇到一个问题, fpga进行卷积后的结果需要乘上一个pca矩阵, 本来打算用fpga做这个矩阵乘法的,考虑到量化后会有精度损失，打算先用arm实现，如果效果还不错的话，那就不用fpga做矩阵乘法。下面是c++写矩阵乘法的优化过程。 约定:矩阵M(1x2048) : fpga_output_float_value;矩阵N(2048x128) : pca_array_row / pca_arr">
+<meta name="twitter:image" content="http://yoursite.com/images/arm_float_martix_multi/arm_float_martix_multi_01_20181130.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/30/arm_float_martix_multi/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>neon指令集加速arm架构下的浮点型矩阵乘法  | 小瓜子's blog</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小瓜子's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />Home</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />Categories</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />Archives</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/30/arm_float_martix_multi/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="小瓜子">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/500px-linux-header-picture.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小瓜子's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">neon指令集加速arm架构下的浮点型矩阵乘法 
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2018-11-30 00:00:00" itemprop="dateCreated datePublished" datetime="2018-11-30T00:00:00+08:00">2018-11-30</time>
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/embeded/" itemprop="url" rel="index"><span itemprop="name">embeded</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h5 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h5><p>最近遇到一个问题, fpga进行卷积后的结果需要乘上一个pca矩阵, 本来打算用fpga做这个矩阵乘法的,考虑到量化后会有精度损失，打算先用arm实现，如果效果还不错的话，那就不用fpga做矩阵乘法。下面是c++写矩阵乘法的优化过程。</p>
+<figure class="highlight autohotkey"><table><tr><td class="code"><pre><span class="line"><span class="symbol">约定:</span></span><br><span class="line"><span class="symbol">矩阵M(1x2048) :</span> fpg<span class="built_in">a_output</span>_float_value<span class="comment">;</span></span><br><span class="line"><span class="symbol">矩阵N(2048x128) :</span> pc<span class="built_in">a_array</span>_row / pc<span class="built_in">a_array</span>_col , 按行/列存储, 矩阵的内容一致</span><br></pre></td></tr></table></figure>
+<h5 id="v1版本-直接按照矩阵乘法的定义编写代码，所写即所想"><a href="#v1版本-直接按照矩阵乘法的定义编写代码，所写即所想" class="headerlink" title="v1版本: 直接按照矩阵乘法的定义编写代码，所写即所想"></a>v1版本: 直接按照矩阵乘法的定义编写代码，所写即所想</h5><figure class="highlight maxima"><table><tr><td class="code"><pre><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="built_in">float</span>&gt; matrix_multi_result;</span><br><span class="line"><span class="keyword">for</span> (int <span class="built_in">col</span> = <span class="number">0</span>; <span class="built_in">col</span> &lt; <span class="number">128</span>; <span class="built_in">col</span>++)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">float</span> temp = <span class="number">0.0</span>;</span><br><span class="line">    <span class="keyword">for</span> (int <span class="built_in">row</span> = <span class="number">0</span>; <span class="built_in">row</span> &lt; <span class="number">2048</span>; <span class="built_in">row</span>++)</span><br><span class="line">    &#123;</span><br><span class="line">        temp += fpga_output_float_value[<span class="built_in">row</span>] * pca_array_row[<span class="built_in">row</span> * <span class="number">128</span> + <span class="built_in">col</span>];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    matrix_multi_result.push_back(temp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h5 id="v2版本-改写for循环使得sum-0-sunm-1-sum-2-sum-3-各自运算过程相互独立，让编译器自动优化-记得编译选项中加上优化参数-O3"><a href="#v2版本-改写for循环使得sum-0-sunm-1-sum-2-sum-3-各自运算过程相互独立，让编译器自动优化-记得编译选项中加上优化参数-O3" class="headerlink" title="v2版本: 改写for循环使得sum[0], sunm[1], sum[2], sum[3]各自运算过程相互独立，让编译器自动优化, 记得编译选项中加上优化参数 -O3"></a>v2版本: 改写for循环使得sum[0], sunm[1], sum[2], sum[3]各自运算过程相互独立，让编译器自动优化, 记得编译选项中加上优化参数 -O3</h5><figure class="highlight maxima"><table><tr><td class="code"><pre><span class="line"><span class="built_in">float</span> <span class="built_in">sum</span>[<span class="number">4</span>] = &#123;<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>&#125;;</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="built_in">float</span>&gt; matrix_multi_result;</span><br><span class="line"><span class="keyword">for</span> (int <span class="built_in">col</span> = <span class="number">0</span>; <span class="built_in">col</span> &lt; <span class="number">128</span>; ++<span class="built_in">col</span>)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">float</span> temp = <span class="number">0.0</span>;</span><br><span class="line">    <span class="keyword">for</span> (int <span class="built_in">row</span> = <span class="number">0</span>; <span class="built_in">row</span> &lt; <span class="number">2048</span>; <span class="built_in">row</span> += <span class="number">4</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">sum</span>[<span class="number">0</span>] = fpga_output_float_value[<span class="built_in">row</span> + <span class="number">0</span>] * pca_array_row[(<span class="built_in">row</span> + <span class="number">0</span>) * <span class="number">128</span> + i];</span><br><span class="line">        <span class="built_in">sum</span>[<span class="number">1</span>] = fpga_output_float_value[<span class="built_in">row</span> + <span class="number">1</span>] * pca_array_row[(<span class="built_in">row</span> + <span class="number">1</span>) * <span class="number">128</span> + i];</span><br><span class="line">        <span class="built_in">sum</span>[<span class="number">2</span>] = fpga_output_float_value[<span class="built_in">row</span> + <span class="number">2</span>] * pca_array_row[(<span class="built_in">row</span> + <span class="number">2</span>) * <span class="number">128</span> + i];</span><br><span class="line">        <span class="built_in">sum</span>[<span class="number">3</span>] = fpga_output_float_value[<span class="built_in">row</span> + <span class="number">3</span>] * pca_array_row[(<span class="built_in">row</span> + <span class="number">3</span>) * <span class="number">128</span> + i];</span><br><span class="line">        </span><br><span class="line">        temp += <span class="built_in">sum</span>[<span class="number">0</span>] + <span class="built_in">sum</span>[<span class="number">1</span>] + <span class="built_in">sum</span>[<span class="number">2</span>] + <span class="built_in">sum</span>[<span class="number">3</span>];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    matrix_multi_result.push_back(temp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="v3版本-使用neon指令集优化运算过程"><a href="#v3版本-使用neon指令集优化运算过程" class="headerlink" title="v3版本: 使用neon指令集优化运算过程"></a>v3版本: 使用neon指令集优化运算过程</h5><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// neon 指令集实现的"乘加"过程</span></span><br><span class="line"><span class="function"><span class="keyword">float</span> <span class="title">dot_product_intrinsic</span><span class="params">(<span class="keyword">float</span> * __restrict vec1, <span class="keyword">float</span> * __restrict vec2, <span class="keyword">int</span> length)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">float32x4_t</span> vec1_q, vec2_q;</span><br><span class="line">        <span class="keyword">float32x4_t</span> sum_q = &#123;<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>&#125;;</span><br><span class="line">        <span class="keyword">float32x2_t</span> tmp[<span class="number">2</span>];</span><br><span class="line">        <span class="keyword">float</span> result = <span class="number">0.0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; (length &amp; ~<span class="number">3</span>); i += <span class="number">4</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            vec1_q = vld1q_f32(&amp;vec1[i]);</span><br><span class="line">            vec2_q = vld1q_f32(&amp;vec2[i]);</span><br><span class="line">            sum_q = vmlaq_f32(sum_q, vec1_q, vec2_q);</span><br><span class="line">        &#125;</span><br><span class="line">        tmp[<span class="number">0</span>] = vget_high_f32(sum_q);</span><br><span class="line">        tmp[<span class="number">1</span>] = vget_low_f32(sum_q);</span><br><span class="line">        tmp[<span class="number">0</span>] = vpadd_f32(tmp[<span class="number">0</span>], tmp[<span class="number">1</span>]);</span><br><span class="line">        tmp[<span class="number">0</span>] = vpadd_f32(tmp[<span class="number">0</span>], tmp[<span class="number">0</span>]);</span><br><span class="line">        result = vget_lane_f32(tmp[<span class="number">0</span>], <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 主循环直接调用函数 dot_product_intrinsic</span></span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">float</span>&gt; matrix_multi_result;</span><br><span class="line"><span class="keyword">const</span> <span class="keyword">int</span> length = <span class="number">2048</span>;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> col = <span class="number">0</span>; col &lt; <span class="number">128</span>; ++col)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">float</span> temp = <span class="number">0.0</span>;</span><br><span class="line">    temp = dot_product_intrinsic(fpga_output_float_value.data(), <span class="keyword">const_cast</span>&lt;<span class="keyword">float</span> *&gt; (pca_array_col[col]), length);</span><br><span class="line">    matrix_multi_result.push_back(temp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下面是三个版本的耗时统计, 可以看到使用neon指令集优化后已经不需要fpga做这个矩阵乘法了。<br><img src="/images/arm_float_martix_multi/arm_float_martix_multi_01_20181130.png" style="margin:0px"></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/neon/" rel="tag"># neon</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/13/xilinx_zcu102_serial_jtag_confilict/" rel="next" title="xilinx zcu102 serial和jtag冲突, 不能同时连接">
+                <i class="fa fa-chevron-left"></i> xilinx zcu102 serial和jtag冲突, 不能同时连接
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/01/multiple_platforms_cmakelist.txt/" rel="prev" title="编写适用于多个平台的CMakeLists.txt">
+                编写适用于多个平台的CMakeLists.txt <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/500px-linux-header-picture.png"
+                alt="小瓜子" />
+            
+              <p class="site-author-name" itemprop="name">小瓜子</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">26</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">9</span>
+                    <span class="site-state-item-name">categories</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-5"><a class="nav-link" href="#前言"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#v1版本-直接按照矩阵乘法的定义编写代码，所写即所想"><span class="nav-text">v1版本: 直接按照矩阵乘法的定义编写代码，所写即所想</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#v2版本-改写for循环使得sum-0-sunm-1-sum-2-sum-3-各自运算过程相互独立，让编译器自动优化-记得编译选项中加上优化参数-O3"><span class="nav-text">v2版本: 改写for循环使得sum[0], sunm[1], sum[2], sum[3]各自运算过程相互独立，让编译器自动优化, 记得编译选项中加上优化参数 -O3</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#v3版本-使用neon指令集优化运算过程"><span class="nav-text">v3版本: 使用neon指令集优化运算过程</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">小瓜子</span>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.4.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.2"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
