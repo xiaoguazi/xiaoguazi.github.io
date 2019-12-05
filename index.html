@@ -1190,7 +1190,7 @@
 
       
         
-          <p>我一般对自己的移动硬盘加密实现防止数据泄露，但总是带个移动硬盘感觉不是很方便，有一些小文件想要加密的话其实可以单独加密，这样你上传加密后的数据到网盘也不用担心数据泄露. 下面介绍加密虚拟磁盘的部分转载于<a href="https://program-think.blogspot.com/2015/10/dm-crypt-cryptsetup.html" target="_blank" rel="noopener">编程随想的博客</a>. 并且经过我在ubuntu 18.04上的实践.</p>
+          <p>我一般对自己的移动硬盘加密实现防止数据泄露，但总是带个移动硬盘感觉不是很方便，有一些小文件想要加密的话其实可以单独加密，这样你上传加密后的数据到网盘也不用担心数据泄露. 下面的操作在ubuntu 18.04上实践.</p>
 <h4 id="创建虚拟磁盘"><a href="#创建虚拟磁盘" class="headerlink" title="创建虚拟磁盘"></a>创建虚拟磁盘</h4><p>创建虚拟磁盘的方式有多种, 下面创建一个25Mb大小的虚拟磁盘.<br><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">dd <span class="attribute">if</span>=/dev/zero <span class="attribute">of</span>=/data/encrypted.vol <span class="attribute">bs</span>=1M <span class="attribute">count</span>=25</span><br><span class="line"></span><br><span class="line">或者</span><br><span class="line"></span><br><span class="line">fallocate -l 25M /data/encrypted.vol</span><br></pre></td></tr></table></figure></p>
 <h4 id="cryptsetup加密-格式化-虚拟磁盘"><a href="#cryptsetup加密-格式化-虚拟磁盘" class="headerlink" title="cryptsetup加密(格式化)虚拟磁盘"></a>cryptsetup加密(格式化)虚拟磁盘</h4><p>cryptseup 有很多详细参数，比如可以指定加密算法什么的，这里用默认参数.<br><figure class="highlight haskell"><table><tr><td class="code"><pre><span class="line"><span class="title">cryptsetup</span>  luksFormat /<span class="class"><span class="keyword">data</span>/encrypted.vol</span></span><br></pre></td></tr></table></figure></p>
           <!--noindex-->

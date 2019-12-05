@@ -59,7 +59,7 @@
   <entry>
     <title><![CDATA[使用cryptsetup加密虚拟磁盘文件]]></title>
     <url>%2F2019%2F03%2F05%2Fencrypt_virtual_disk%2F</url>
-    <content type="text"><![CDATA[我一般对自己的移动硬盘加密实现防止数据泄露，但总是带个移动硬盘感觉不是很方便，有一些小文件想要加密的话其实可以单独加密，这样你上传加密后的数据到网盘也不用担心数据泄露. 下面介绍加密虚拟磁盘的部分转载于编程随想的博客. 并且经过我在ubuntu 18.04上的实践. 创建虚拟磁盘创建虚拟磁盘的方式有多种, 下面创建一个25Mb大小的虚拟磁盘.dd if=/dev/zero of=/data/encrypted.vol bs=1M count=25或者fallocate -l 25M /data/encrypted.vol cryptsetup加密(格式化)虚拟磁盘cryptseup 有很多详细参数，比如可以指定加密算法什么的，这里用默认参数.cryptsetup luksFormat /data/encrypted.vol 打开加密后的磁盘xxx可以随意指定, 打开成功后会在/dev/mapper目录下出现xxxcryptsetup luksOpen /data/encrypted.vol xxx 创建文件系统由于加密盘已经打开并映射到 /dev/mapper/xxx 你可以在 /dev/mapper/xxx 之上创建文件系统.mkfs.ext4 /dev/mapper/xxx 下面进行文件系统的挂载。mount /dev/mapper/xxx /mnt 接下来，你就可以通过 /mnt/xxx 目录去访问该文件系统。当你往 /mnt/xxx 下面创建下级目录或下级文件，这些东东将被存储到该虚拟加密盘上。 退出当你使用完，要记得退出。包括下面两步：卸载文件系统umount /mnt/xxx 关闭加密盘cryptsetup close xxx]]></content>
+    <content type="text"><![CDATA[我一般对自己的移动硬盘加密实现防止数据泄露，但总是带个移动硬盘感觉不是很方便，有一些小文件想要加密的话其实可以单独加密，这样你上传加密后的数据到网盘也不用担心数据泄露. 下面的操作在ubuntu 18.04上实践. 创建虚拟磁盘创建虚拟磁盘的方式有多种, 下面创建一个25Mb大小的虚拟磁盘.dd if=/dev/zero of=/data/encrypted.vol bs=1M count=25或者fallocate -l 25M /data/encrypted.vol cryptsetup加密(格式化)虚拟磁盘cryptseup 有很多详细参数，比如可以指定加密算法什么的，这里用默认参数.cryptsetup luksFormat /data/encrypted.vol 打开加密后的磁盘xxx可以随意指定, 打开成功后会在/dev/mapper目录下出现xxxcryptsetup luksOpen /data/encrypted.vol xxx 创建文件系统由于加密盘已经打开并映射到 /dev/mapper/xxx 你可以在 /dev/mapper/xxx 之上创建文件系统.mkfs.ext4 /dev/mapper/xxx 下面进行文件系统的挂载。mount /dev/mapper/xxx /mnt 接下来，你就可以通过 /mnt/xxx 目录去访问该文件系统。当你往 /mnt/xxx 下面创建下级目录或下级文件，这些东东将被存储到该虚拟加密盘上。 退出当你使用完，要记得退出。包括下面两步：卸载文件系统umount /mnt/xxx 关闭加密盘cryptsetup close xxx]]></content>
       <categories>
         <category>Linux</category>
         <category>加密</category>

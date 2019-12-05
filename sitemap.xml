@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://xiaogua.me/2019/03/05/encrypt_virtual_disk/</loc>
+    
+    <lastmod>2019-12-05T07:49:54.206Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://xiaogua.me/2019/11/09/tplink_wireless_switch_mode/</loc>
     
     <lastmod>2019-11-09T04:17:56.942Z</lastmod>
@@ -103,13 +110,6 @@
     <loc>https://xiaogua.me/2019/03/05/encrypt_virtual_disk_shell_script/</loc>
     
     <lastmod>2019-03-09T00:32:00.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://xiaogua.me/2019/03/05/encrypt_virtual_disk/</loc>
-    
-    <lastmod>2019-03-05T03:00:27.000Z</lastmod>
     
   </url>
   
