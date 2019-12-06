@@ -108,18 +108,18 @@
 
 
 
-  <meta name="description" content="最近在开发过程中，希望能保留一段内存不被系统使用，这样这段内存里面的数据就不会被系统程序修改。我使用的是xilinx zynqMP Soc系列的开发板，按照xilinx wiki 预留内存教程试了下。 步骤1. 使用petalinux创建一个project2. 修改设备树文件system-top.dts，添加预留内存的设备树节点3. petalinux-build">
+  <meta name="description" content="最近在开发过程中，希望能保留一段内存不被系统使用，这样这段内存里面的数据就不会被系统程序修改。我使用的是xilinx zynqMP Soc系列的开发板，按照xilinx wiki 预留内存教程试了下。 步骤1. 使用petalinux创建一个project2. 修改设备树文件system-user.dtsi, 添加预留内存的设备树节点   (project-spec/meta-user/recip">
 <meta name="keywords" content="petalinux">
 <meta property="og:type" content="article">
 <meta property="og:title" content="petalinux预留内存">
 <meta property="og:url" content="https://xiaogua.me/2019/03/05/petalinux_reserved_memory/index.html">
 <meta property="og:site_name" content="小瓜子&#39;s blog">
-<meta property="og:description" content="最近在开发过程中，希望能保留一段内存不被系统使用，这样这段内存里面的数据就不会被系统程序修改。我使用的是xilinx zynqMP Soc系列的开发板，按照xilinx wiki 预留内存教程试了下。 步骤1. 使用petalinux创建一个project2. 修改设备树文件system-top.dts，添加预留内存的设备树节点3. petalinux-build">
+<meta property="og:description" content="最近在开发过程中，希望能保留一段内存不被系统使用，这样这段内存里面的数据就不会被系统程序修改。我使用的是xilinx zynqMP Soc系列的开发板，按照xilinx wiki 预留内存教程试了下。 步骤1. 使用petalinux创建一个project2. 修改设备树文件system-user.dtsi, 添加预留内存的设备树节点   (project-spec/meta-user/recip">
 <meta property="og:locale" content="en">
-<meta property="og:updated_time" content="2019-03-28T08:05:04.000Z">
+<meta property="og:updated_time" content="2019-12-06T11:03:01.086Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="petalinux预留内存">
-<meta name="twitter:description" content="最近在开发过程中，希望能保留一段内存不被系统使用，这样这段内存里面的数据就不会被系统程序修改。我使用的是xilinx zynqMP Soc系列的开发板，按照xilinx wiki 预留内存教程试了下。 步骤1. 使用petalinux创建一个project2. 修改设备树文件system-top.dts，添加预留内存的设备树节点3. petalinux-build">
+<meta name="twitter:description" content="最近在开发过程中，希望能保留一段内存不被系统使用，这样这段内存里面的数据就不会被系统程序修改。我使用的是xilinx zynqMP Soc系列的开发板，按照xilinx wiki 预留内存教程试了下。 步骤1. 使用petalinux创建一个project2. 修改设备树文件system-user.dtsi, 添加预留内存的设备树节点   (project-spec/meta-user/recip">
 
 
 
@@ -384,7 +384,7 @@
 
       
         <p>最近在开发过程中，希望能保留一段内存不被系统使用，这样这段内存里面的数据就不会被系统程序修改。我使用的是xilinx zynqMP Soc系列的开发板，按照<a href="https://xilinx-wiki.atlassian.net/wiki/spaces/A/pages/18841683/Linux+Reserved+Memory" target="_blank" rel="noopener">xilinx wiki 预留内存教程</a>试了下。</p>
-<h4 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h4><figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">1. </span>使用petalinux创建一个project</span><br><span class="line"></span><br><span class="line"><span class="bullet">2. </span>修改设备树文件system-top.dts，添加预留内存的设备树节点</span><br><span class="line"></span><br><span class="line"><span class="bullet">3. </span>petalinux-build</span><br></pre></td></tr></table></figure>
+<h4 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h4><figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">1. </span>使用petalinux创建一个project</span><br><span class="line"></span><br><span class="line"><span class="bullet">2. </span>修改设备树文件system-user.dtsi, 添加预留内存的设备树节点</span><br><span class="line">   (project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi)</span><br><span class="line"></span><br><span class="line"><span class="bullet">3. </span>petalinux-build</span><br></pre></td></tr></table></figure>
 <a id="more"></a>
 <p>适用于 64-bit Cortex-A53 MPSoC的节点信息<br><figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line">reserved-memory &#123;</span><br><span class="line">   <span class="comment">#address-cells = &lt;2&gt;;</span></span><br><span class="line">   <span class="comment">#size-cells = &lt;2&gt;;</span></span><br><span class="line">   ranges<span class="comment">;</span></span><br><span class="line"> </span><br><span class="line"><span class="symbol">   reserved:</span> <span class="keyword">buffer@0 </span>&#123;</span><br><span class="line">      no-map<span class="comment">;</span></span><br><span class="line">      reg = &lt;<span class="number">0x0</span> <span class="number">0x40000000</span> <span class="number">0x0</span> <span class="number">0x10000000</span>&gt;<span class="comment">;</span></span><br><span class="line">   &#125;<span class="comment">;</span></span><br><span class="line">&#125;<span class="comment">;</span></span><br><span class="line"> </span><br><span class="line">reserved-driver@<span class="number">0</span> &#123;</span><br><span class="line">   compatible = <span class="string">"xlnx,reserved-memory"</span><span class="comment">;</span></span><br><span class="line">   memory-region = &lt;&amp;reserved&gt;<span class="comment">;</span></span><br><span class="line">&#125;<span class="comment">;</span></span><br></pre></td></tr></table></figure></p>
 <p>适用于32-bit Cortex-A9 Zynq的节点信息<br><figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line">reserved-memory &#123;</span><br><span class="line">   <span class="comment">#address-cells = &lt;1&gt;;</span></span><br><span class="line">   <span class="comment">#size-cells = &lt;1&gt;;</span></span><br><span class="line">   ranges<span class="comment">;</span></span><br><span class="line">  </span><br><span class="line"><span class="symbol">   reserved:</span> <span class="keyword">buffer@0x38000000 </span>&#123;</span><br><span class="line">      no-map<span class="comment">;</span></span><br><span class="line">      reg = &lt;<span class="number">0x38000000</span> <span class="number">0x08000000</span>&gt;<span class="comment">;</span></span><br><span class="line">   &#125;<span class="comment">;</span></span><br><span class="line">&#125;<span class="comment">;</span></span><br><span class="line">  </span><br><span class="line">reserved-driver@<span class="number">0</span> &#123;</span><br><span class="line">   compatible = <span class="string">"xlnx,reserved-memory"</span><span class="comment">;</span></span><br><span class="line">   memory-region = &lt;&amp;reserved&gt;<span class="comment">;</span></span><br><span class="line">&#125;<span class="comment">;</span></span><br></pre></td></tr></table></figure></p>
